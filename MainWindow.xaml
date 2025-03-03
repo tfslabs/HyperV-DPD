@@ -1,0 +1,44 @@
+﻿<Window x:Name="MainWindowGUI" 
+        x:Class="DDAGUI.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:DDAGUI"
+        mc:Ignorable="d"
+        Title="Hyper-V DDA GUI" 
+        Height="450" 
+        Width="800" 
+        SizeToContent="WidthAndHeight" 
+        Icon="/main.ico">
+    <Grid>
+        <StackPanel x:Name="MainWindowHeader" >
+            <Menu IsMainMenu="True">
+                <MenuItem x:Name="_MenuItemFile" Header="_File" >
+                    <MenuItem Click="WMIConnect_Click" Header="Connect to _Another Computer" />
+                    <MenuItem Click="QuitMainWindow_Click" Header="_Exit" />
+                </MenuItem>
+                <MenuItem x:Name="_MenuItemDDA" Header="DDA">
+                    <MenuItem Click="AddDevice_Click" Header="_Add Device"/>
+                    <MenuItem Click="RemDevice_Click" Header="_Remove Device" />
+                    <MenuItem Click="CopyDevAddress_Click" Header="Copy Device Address" />
+                    <MenuItem Click="ChangeMemLocation_Click" Header="_Change Memory Location" />
+                    <CheckBox IsChecked="False" Click="IsGuestControlledCacheTypes_Click">
+                        <TextBlock>Change guest VM memory location</TextBlock>
+                    </CheckBox>
+                </MenuItem>
+                <MenuItem x:Name="_MenuItemHVService" Header="_Hyper-V Service" >
+                    <MenuItem Click="HyperVServiceStatus_Click" Header="_Check Hyper-V Status" />
+                    <MenuItem Click="AssignableDevice_Click" Header="_Check for Assignable Devices" />
+                    <MenuItem Click="RemAllDevice_Click" Header="_Remove All Assigned Devices" />
+                </MenuItem>
+                <MenuItem x:Name="_MenuItemView" Header="_View">
+                    <MenuItem Click="HyperVRefresh_Click" Header="_Refresh" />
+                </MenuItem>
+                <MenuItem x:Name="_MenuItemHelp" Header="_Help">
+                    <MenuItem Click="AboutBox_Click" Header="_About" />
+                </MenuItem>
+            </Menu>
+        </StackPanel>
+    </Grid>
+</Window>
