@@ -1,23 +1,4 @@
-﻿using Microsoft.Win32;
-using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Globalization;
-using System.IO;
-using System.Linq;
-using System.Reflection;
-using System.Runtime.CompilerServices;
-using System.Runtime.InteropServices;
-using System.Security.Principal;
-using System.Text.RegularExpressions;
-using System.Threading;
-using System.Threading.Tasks;
-using System.Windows;
-using System.Windows.Controls;
-using System.Windows.Controls.Primitives;
-using System.Windows.Input;
-using System.Windows.Media;
-using System.Xml.Schema;
+﻿using System.Windows;
 
 namespace DDAGUI
 {
@@ -88,6 +69,9 @@ namespace DDAGUI
 
         }
 
+        private void ChangeCacheTypes_Click(object sender, RoutedEventArgs e)
+        {
 
+        }
     }
 }

@@ -1,18 +1,19 @@
-﻿<Window x:Name="MainWindowGUI" 
-        x:Class="DDAGUI.MainWindow"
-        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
-        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        xmlns:local="clr-namespace:DDAGUI"
-        mc:Ignorable="d"
-        Title="Hyper-V DDA GUI" 
-        Height="450" 
-        Width="800" 
-        SizeToContent="WidthAndHeight" 
-        Icon="/main.ico">
-    <Grid>
-        <StackPanel x:Name="MainWindowHeader" >
+﻿<Window 
+    x:Name="MainWindowName"
+    x:Class="DDAGUI.MainWindow"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    Title="Hyper-V DDA GUI" 
+    Height="Auto"
+    SizeToContent="WidthAndHeight"
+    ResizeMode="NoResize"
+    mc:Ignorable="d"
+    Icon="/main.ico"
+    WindowStyle="ThreeDBorderWindow">
+    <Grid Width="800" Height="450">
+        <StackPanel x:Name="MainWindowHeader" Margin="0,0,0,416">
             <Menu IsMainMenu="True">
                 <MenuItem x:Name="_MenuItemFile" Header="_File" >
                     <MenuItem Click="WMIConnect_Click" Header="Connect to _Another Computer" />
@@ -22,10 +23,9 @@
                     <MenuItem Click="AddDevice_Click" Header="_Add Device"/>
                     <MenuItem Click="RemDevice_Click" Header="_Remove Device" />
                     <MenuItem Click="CopyDevAddress_Click" Header="Copy Device Address" />
-                    <MenuItem Click="ChangeMemLocation_Click" Header="_Change Memory Location" />
-                    <CheckBox IsChecked="False" Click="IsGuestControlledCacheTypes_Click">
-                        <TextBlock>Change guest VM memory location</TextBlock>
-                    </CheckBox>
+                    <Separator />
+                    <MenuItem Click="ChangeMemLocation_Click" Header="_Change Memory Space" />
+                    <MenuItem Click="ChangeCacheTypes_Click" Header="_Change VM Cache Types"/>
                 </MenuItem>
                 <MenuItem x:Name="_MenuItemHVService" Header="_Hyper-V Service" >
                     <MenuItem Click="HyperVServiceStatus_Click" Header="_Check Hyper-V Status" />
@@ -40,5 +40,35 @@
                 </MenuItem>
             </Menu>
         </StackPanel>
+        <Grid Margin="0,18,0,84">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="400" />
+                <ColumnDefinition Width="400" />
+            </Grid.ColumnDefinitions>
+            <ListView Grid.Column="0" Margin="10,10,10,5">
+            </ListView>
+            <ListView Grid.Column="1" Margin="10,10,10,5">
+            </ListView>
+        </Grid>
+        <Grid Margin="0,371,0,54">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="*" />
+            </Grid.ColumnDefinitions>
+            <Button Grid.Column="0" Click="ChangeCacheTypes_Click" Content="Change VM Cache Types" HorizontalAlignment="Left" Margin="10,0,0,0" VerticalAlignment="Center" Width="150"/>
+            <Button Grid.Column="0" Click="ChangeMemLocation_Click" Content="Change Memory Space" HorizontalAlignment="Left" Margin="165,0,0,0" VerticalAlignment="Center" Width="130"/>
+            <Button Grid.Column="1" Click="AddDevice_Click" Content="Add Device" HorizontalAlignment="Left" Margin="10,0,0,0" VerticalAlignment="Center" Width="80"/>
+            <Button Grid.Column="1" Click="RemDevice_Click" Content="Remove Device" HorizontalAlignment="Left" Margin="95,0,0,0" VerticalAlignment="Center" Width="100"/>
+            <Button Grid.Column="1" Click="CopyDevAddress_Click" Content="Copy Device Address" HorizontalAlignment="Left" Margin="200,0,0,0" VerticalAlignment="Center" Width="120"/>
+        </Grid>
+        <Grid Margin="0,401,0,23">
+            <Button Click="HyperVServiceStatus_Click" Content="Check Hyper-V Status" HorizontalAlignment="Left" Height="20" Margin="10,0,0,0" VerticalAlignment="Center" Width="134"/>
+            <Button Click="AssignableDevice_Click" Content="Check for Assignable Devices" HorizontalAlignment="Left" Height="20" Margin="149,0,0,0" VerticalAlignment="Center" Width="166"/>
+            <Button Click="RemAllDevice_Click" Content="Remove All Assigned Devices" HorizontalAlignment="Left" Height="20" Margin="320,0,0,0" VerticalAlignment="Center" Width="166"/>
+        </Grid>
+        <DockPanel Margin="0,427,0,0">
+            <TextBlock x:Name="BottomLabelStatus" Margin="5,0,0,0" VerticalAlignment="Center"> Initializing...</TextBlock>
+            <ProgressBar x:Name="BottomProgressBarStatus" Margin="5,4,5,4" IsIndeterminate="True" Visibility="Visible" />
+        </DockPanel>
     </Grid>
 </Window>
