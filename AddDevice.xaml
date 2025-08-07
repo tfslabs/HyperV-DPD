@@ -6,10 +6,23 @@
         xmlns:local="clr-namespace:DDAGUI"
         mc:Ignorable="d"
         Title="Add Device" 
-        Height="Auto"
+        ResizeMode="NoResize"
         SizeToContent="WidthAndHeight"
-        ResizeMode="NoResize">
-    <Grid Width="400" Height="300">
-        
+        Height="320" Width="440">
+    <Grid Height="300" Width="440">
+        <ListView x:Name="DeviceList" Margin="10,10,10,35">
+            <ListView.View>
+                <GridView>
+                    <GridViewColumn Header="Status" DisplayMemberBinding="{Binding DeviceStatus}" Width="50"/>
+                    <GridViewColumn Header="Type" DisplayMemberBinding="{Binding DeviceType}" Width="100"/>
+                    <GridViewColumn Header="Name" DisplayMemberBinding="{Binding DeviceName}" Width="160"/>
+                    <GridViewColumn Header="ID" DisplayMemberBinding="{Binding DeviceId}" Width="80"/>
+                </GridView>
+            </ListView.View>
+        </ListView>
+        <Grid HorizontalAlignment="Left" Height="20" VerticalAlignment="Top" Width="140" Margin="290,270,0,0">
+            <Button Content="Add Device" HorizontalAlignment="Left" VerticalAlignment="Center" Width="75" Click="AddDeviceButton_Click"/>
+            <Button Content="Close" HorizontalAlignment="Right" VerticalAlignment="Center" Width="60" Click="AddDeviceCloseButton_Click"/>
+        </Grid>
     </Grid>
 </Window>

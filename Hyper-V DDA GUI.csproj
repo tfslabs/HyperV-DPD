@@ -110,18 +110,26 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
-    <Compile Include="AddDevice.xaml.cs">
-      <DependentUpon>AddDevice.xaml</DependentUpon>
-    </Compile>
     <Compile Include="ConnectForm.xaml.cs">
       <DependentUpon>ConnectForm.xaml</DependentUpon>
     </Compile>
-    <Compile Include="WMIConnector\WMIWrapper.cs" />
-    <Page Include="AddDevice.xaml">
+    <Compile Include="About.xaml.cs">
+      <DependentUpon>About.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="AddDevice.xaml.cs">
+      <DependentUpon>AddDevice.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Exception.cs" />
+    <Compile Include="WMIProperties\WMIWrapper.cs" />
+    <Page Include="ConnectForm.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="About.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
-    <Page Include="ConnectForm.xaml">
+    <Page Include="AddDevice.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

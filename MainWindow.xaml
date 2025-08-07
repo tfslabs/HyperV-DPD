@@ -45,12 +45,16 @@
                 <ColumnDefinition Width="400" />
                 <ColumnDefinition Width="400" />
             </Grid.ColumnDefinitions>
-            <Label HorizontalAlignment="Center" VerticalAlignment="Center" Grid.Row="0" Content="Filter VMs" Margin="10,3,325,322" />
-            <TextBox Grid.Row="0" Margin="80,3,10,322" />
+            <Label HorizontalAlignment="Left" VerticalAlignment="Top" Grid.Row="0" Content="Virtual Machine List" Margin="10,2,0,0" Width="116" />
             <ListView x:Name="VMList" Grid.Column="0" Margin="10,30,10,5">
+                <ListView.View>
+                    <GridView>
+                        <GridViewColumn Header="Name" DisplayMemberBinding="{Binding VMName}" Width="250"/>
+                        <GridViewColumn Header="Status" DisplayMemberBinding="{Binding VMStatus}" Width="120"/>
+                    </GridView>
+                </ListView.View>
             </ListView>
-            <Label HorizontalAlignment="Center" VerticalAlignment="Center" Content="Filter Devices" Grid.Column="1" Margin="10,3,310,321"/>
-            <TextBox Grid.Column="1" Margin="0,3,10,322" HorizontalAlignment="Right" Width="295" />
+            <Label HorizontalAlignment="Left" VerticalAlignment="Center" Content="Device List" Grid.Column="1" Margin="10,3,310,321"/>
             <ListView x:Name="DevicePerVMList" Grid.Column="1" Margin="10,30,10,5">
             </ListView>
         </Grid>
@@ -71,7 +75,7 @@
             <Button Click="RemAllDevice_Click" Content="Remove All Assigned Devices" HorizontalAlignment="Left" Height="20" Margin="320,0,0,0" VerticalAlignment="Center" Width="166"/>
         </Grid>
         <DockPanel Margin="0,427,0,0">
-            <TextBlock x:Name="BottomLabelStatus" Margin="5,0,0,0" VerticalAlignment="Center"> Initializing...</TextBlock>
+            <TextBlock x:Name="BottomLabelStatus" Margin="5,0,0,0" VerticalAlignment="Center"> Refreshing...</TextBlock>
             <ProgressBar x:Name="BottomProgressBarStatus" Margin="5,4,5,4" IsIndeterminate="True" Visibility="Visible" />
         </DockPanel>
     </Grid>

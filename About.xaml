@@ -1,0 +1,22 @@
+﻿<Window x:Class="DDAGUI.About"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:DDAGUI"
+        mc:Ignorable="d"
+        Title="About" Height="130" Width="420">
+    <Grid>
+        <TextBlock Name="TextBoxDescription" Margin="5,5,10,5" TextWrapping="Wrap">
+            Hyper-V DDA, by TheFlightSims. Currently under support.
+				<LineBreak />
+				<LineBreak />
+            Copyright (C) 2025 TheFlightSims
+				<LineBreak />
+				<LineBreak />
+            This tool is the alternative tool for Hyper-V DDA management on PowerShell v3.0. All comamnds are implemented in WMI.
+				<LineBreak />
+				<LineBreak />
+        </TextBlock>
+    </Grid>
+</Window>

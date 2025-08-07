@@ -4,6 +4,6 @@ namespace DDAGUI
 {
     public partial class App : Application
     {
-        
+
     }
 }

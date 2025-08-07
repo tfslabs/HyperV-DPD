@@ -1,11 +1,8 @@
-﻿using System.Windows.Controls;
+﻿using System.Windows;
 
 namespace DDAGUI
 {
-    /// <summary>
-    /// Interaction logic for ConnectForm.xaml
-    /// </summary>
-    public partial class ConnectForm : Page
+    public partial class ConnectForm : Window
     {
         public ConnectForm()
         {
