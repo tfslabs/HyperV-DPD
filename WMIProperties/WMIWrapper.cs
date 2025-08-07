@@ -33,7 +33,7 @@ namespace DDAGUI.WMIProperties
 #if DEBUG
                 throw new ManagementException("Error of {GetManagementObjectCollection}:\n" + e.ToString());
 #else
-                throw new ManagementException($"Failed to connect to WMI namespace {nameSpace} on {ComputerName}: {e.Message}");
+                throw new ManagementException($"Failed to connect to WMI namespace {nameSpace} on {computerName}: {e.Message}");
 #endif
             }
             finally

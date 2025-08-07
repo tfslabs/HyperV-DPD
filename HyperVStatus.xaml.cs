@@ -26,8 +26,8 @@ namespace DDAGUI
 
         public HyperVStatus(WMIWrapper wmi)
         {
-            this.wmi = wmi;
             InitializeComponent();
+            this.wmi = wmi;
             this.RefreshServices();
         }
 
