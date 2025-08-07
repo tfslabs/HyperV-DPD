@@ -119,7 +119,9 @@
     <Compile Include="AddDevice.xaml.cs">
       <DependentUpon>AddDevice.xaml</DependentUpon>
     </Compile>
-    <Compile Include="Exception.cs" />
+    <Compile Include="HyperVStatus.xaml.cs">
+      <DependentUpon>HyperVStatus.xaml</DependentUpon>
+    </Compile>
     <Compile Include="WMIProperties\WMIWrapper.cs" />
     <Page Include="ConnectForm.xaml">
       <Generator>MSBuild:Compile</Generator>
@@ -130,6 +132,10 @@
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="AddDevice.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="HyperVStatus.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

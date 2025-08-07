@@ -1,0 +1,24 @@
+﻿<Window x:Class="DDAGUI.HyperVStatus"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:DDAGUI"
+        mc:Ignorable="d"
+        Title="Check Hyper-V" 
+        Height="300" 
+        Width="400" 
+        ResizeMode="NoResize" 
+        SizeToContent="WidthAndHeight" ScrollViewer.VerticalScrollBarVisibility="Hidden">
+    <Grid>
+        <ListView x:Name="ListHVSrv" Margin="10,10,10,35" ScrollViewer.VerticalScrollBarVisibility="Hidden">
+            <ListView.View>
+                <GridView>
+                    <GridViewColumn Header="Name" DisplayMemberBinding="{Binding ServiceName}" Width="260"/>
+                    <GridViewColumn Header="Status" DisplayMemberBinding="{Binding ServiceStatus}" Width="120"/>
+                </GridView>
+            </ListView.View>
+        </ListView>
+        <Button Content="Close" HorizontalAlignment="Left" Margin="340,252,0,0" VerticalAlignment="Top" Width="50"/>
+    </Grid>
+</Window>

@@ -8,7 +8,8 @@
         Title="Add Device" 
         ResizeMode="NoResize"
         SizeToContent="WidthAndHeight"
-        Height="320" Width="440">
+        Height="320" 
+        Width="440">
     <Grid Height="300" Width="440">
         <ListView x:Name="DeviceList" Margin="10,10,10,35">
             <ListView.View>

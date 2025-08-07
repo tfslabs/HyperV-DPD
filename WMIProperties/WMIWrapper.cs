@@ -1,6 +1,6 @@
 ﻿using System.Management;
 
-namespace DDAGUI
+namespace DDAGUI.WMIProperties
 {
     public class WMIWrapper
     {

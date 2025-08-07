@@ -1,4 +1,6 @@
-﻿using System.Windows;
+﻿using DDAGUI.WMIProperties;
+using System;
+using System.Windows;
 
 namespace DDAGUI
 {
@@ -7,7 +9,6 @@ namespace DDAGUI
         protected string deviceId;
         protected WMIWrapper wmi;
 
-        
         public AddDevice(WMIWrapper wmi)
         {
             this.wmi = wmi;
@@ -42,8 +43,8 @@ namespace DDAGUI
 
         public string GetDeviceId()
         {
-            ShowDialog();
             UpdateDevices(this.wmi);
+            ShowDialog();
             
             if (!(deviceId == null || deviceId == string.Empty))
             {
@@ -51,9 +52,9 @@ namespace DDAGUI
             }
             else
             {
-                throw new ExceptionHandler("[DDA Error] The device either has no valid ID or has disconnected.");
+                throw new NullReferenceException("[DDA Error] The device either has no valid ID or has disconnected.");
             }
-            
+
             return deviceId;
         }
 

@@ -1,4 +1,5 @@
-﻿using System;
+﻿using DDAGUI.WMIProperties;
+using System;
 using System.Collections.Generic;
 using System.Management;
 using System.Windows;
@@ -74,19 +75,30 @@ namespace DDAGUI
         {
             StatusBarChangeBehaviour(true);
 
-            AddDevice addDeviceDialog = new AddDevice(this.wmi);
-            string deviceId = addDeviceDialog.GetDeviceId();
-
-            try
+            if (VMList.SelectedItem != null)
             {
-                MessageBox.Show($"Device ID: {deviceId}", "Device Added", MessageBoxButton.OK, MessageBoxImage.Information);
+                try
+                {
+                    AddDevice addDevice = new AddDevice(this.wmi);
+                    string deviceId = addDevice.GetDeviceId();
+                    string vmName = VMList.SelectedItem.GetType().GetProperty("VMName").GetValue(VMList.SelectedItem, null).ToString();
+                    //MessageBox.Show($"Add device {deviceId} into {vmName}", "Info", MessageBoxButton.OK, MessageBoxImage.Information);
+                    StatusBarChangeBehaviour(false);
+                }
+                catch (NullReferenceException ex)
+                {
+#if DEBUG
+                    MessageBox.Show(ex.Message, "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                    StatusBarChangeBehaviour(false, "No Device Added");
+#else
+                    StatusBarChangeBehaviour(false, "No Device Added");
+#endif
+                }
             }
-            catch (ExceptionHandler) 
+            else
             {
-            
+                MessageBox.Show("Please select a VM to add a device", "Warning", MessageBoxButton.OK, MessageBoxImage.Warning);
             }
-
-            StatusBarChangeBehaviour(false);
         }
 
         private void RemDevice_Click(object sender, RoutedEventArgs e)
@@ -111,7 +123,8 @@ namespace DDAGUI
 
         private void HyperVServiceStatus_Click(object sender, RoutedEventArgs e)
         {
-
+            HyperVStatus hyperVStatus = new HyperVStatus();
+            hyperVStatus.ShowDialog();
         }
 
         private void AssignableDevice_Click(object sender, RoutedEventArgs e)
@@ -150,6 +163,9 @@ namespace DDAGUI
 
         private void RefreshVMs()
         {
+
+            VMList.Items.Clear();
+
             try
             {
                 var devices = this.wmi.getManagementObjectCollection("Msvm_ComputerSystem", "root\\virtualization\\v2", "Caption, ElementName, Name, EnabledState");
@@ -174,17 +190,10 @@ namespace DDAGUI
             }
         }
 
-        private void StatusBarChangeBehaviour(bool isRefresh)
+        private void StatusBarChangeBehaviour(bool isRefresh, string labelMessage = "Refreshing...")
         {
             BottomProgressBarStatus.IsIndeterminate = isRefresh;
-            if (isRefresh)
-            {
-                BottomLabelStatus.Text = "Refreshing...";
-            }
-            else
-            {
-                BottomLabelStatus.Text = "Done";
-            }
+            BottomLabelStatus.Text = labelMessage;
         }
     }
 }
