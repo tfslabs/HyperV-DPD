@@ -65,12 +65,21 @@ namespace DDAGUI
             DeviceList.Items.Clear();
             foreach (var device in wmi.GetManagementObjectCollection("Win32_PnPEntity", "root\\cimv2", "Status, PNPClass, Name, DeviceID"))
             {
+                string deviceStatus = device["Status"]?.ToString() ?? "Unknown";
+                string deviceType = device["PNPClass"]?.ToString() ?? "Unknown";
+                string deviceName = device["Name"]?.ToString() ?? "Unknown";
+                string deviceId = device["DeviceID"]?.ToString() ?? "Unknown";
+
+                if (deviceStatus != "OK" || !deviceId.StartsWith("PCI")) {
+                    continue;
+                }
+
                 DeviceList.Items.Add(new
                 {
-                    DeviceStatus = device["Status"]?.ToString() ?? "Unknown",
-                    DeviceType = device["PNPClass"]?.ToString() ?? "Unknown",
-                    DeviceName = device["Name"]?.ToString() ?? "Unknown",
-                    DeviceId = device["DeviceID"]?.ToString() ?? "Unknown"
+                    DeviceStatus = deviceStatus,
+                    DeviceType = deviceType,
+                    DeviceName = deviceName,
+                    DeviceId = deviceId
                 });
             }
         }
