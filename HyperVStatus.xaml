@@ -10,7 +10,7 @@
         Width="400" 
         ResizeMode="NoResize" 
         SizeToContent="WidthAndHeight" ScrollViewer.VerticalScrollBarVisibility="Hidden">
-    <Grid>
+    <Grid Width="400" Height="280">
         <ListView x:Name="ListHVSrv" Margin="10,10,10,35" ScrollViewer.VerticalScrollBarVisibility="Hidden">
             <ListView.View>
                 <GridView>
@@ -19,6 +19,6 @@
                 </GridView>
             </ListView.View>
         </ListView>
-        <Button Content="Close" HorizontalAlignment="Left" Margin="340,252,0,0" VerticalAlignment="Top" Width="50"/>
+        <Button Content="Refresh" HorizontalAlignment="Left" Margin="330,252,0,0" VerticalAlignment="Top" Width="60" Click="Refresh_Click"/>
     </Grid>
 </Window>

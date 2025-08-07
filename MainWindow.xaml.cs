@@ -35,7 +35,7 @@ namespace DDAGUI
 
             try
             {
-                var hyerpvObjects = this.wmi.getManagementObjectCollection("Msvm_ComputerSystem", "root\\virtualization\\v2");
+                var hyerpvObjects = this.wmi.GetManagementObjectCollection("Msvm_ComputerSystem", "root\\virtualization\\v2");
                 if (hyerpvObjects == null || hyerpvObjects.Count == 0)
                 {
                     MessageBox.Show("Please ensure Hyper-V is installed and running on this machine.\nApplication shutting down...", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
@@ -123,7 +123,7 @@ namespace DDAGUI
 
         private void HyperVServiceStatus_Click(object sender, RoutedEventArgs e)
         {
-            HyperVStatus hyperVStatus = new HyperVStatus();
+            HyperVStatus hyperVStatus = new HyperVStatus(this.wmi);
             hyperVStatus.ShowDialog();
         }
 
@@ -168,7 +168,7 @@ namespace DDAGUI
 
             try
             {
-                var devices = this.wmi.getManagementObjectCollection("Msvm_ComputerSystem", "root\\virtualization\\v2", "Caption, ElementName, Name, EnabledState");
+                var devices = this.wmi.GetManagementObjectCollection("Msvm_ComputerSystem", "root\\virtualization\\v2", "Caption, ElementName, Name, EnabledState");
                 foreach (var vm in devices)
                 {
                     if (vm["Caption"].Equals("Virtual Machine"))

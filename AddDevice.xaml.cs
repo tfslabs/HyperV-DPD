@@ -1,6 +1,8 @@
-﻿using DDAGUI.WMIProperties;
-using System;
+﻿using System;
 using System.Windows;
+
+using DDAGUI.WMIProperties;
+
 
 namespace DDAGUI
 {
@@ -61,7 +63,7 @@ namespace DDAGUI
         private void UpdateDevices(WMIWrapper wmi)
         {
             DeviceList.Items.Clear();
-            foreach (var device in wmi.getManagementObjectCollection("Win32_PnPEntity", "root\\cimv2", "Status, PNPClass, Name, DeviceID"))
+            foreach (var device in wmi.GetManagementObjectCollection("Win32_PnPEntity", "root\\cimv2", "Status, PNPClass, Name, DeviceID"))
             {
                 DeviceList.Items.Add(new
                 {

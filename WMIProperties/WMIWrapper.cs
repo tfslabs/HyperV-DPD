@@ -4,20 +4,25 @@ namespace DDAGUI.WMIProperties
 {
     public class WMIWrapper
     {
-        protected string ComputerName;
+        protected string computerName;
 
         public WMIWrapper(string computerName)
         {
-            this.ComputerName = computerName;
+            this.computerName = computerName;
         }
 
-        public ManagementObjectCollection getManagementObjectCollection(string className, string nameSpace, string fields = "*")
+        public void SetComputerName(string computerName)
+        {
+            this.computerName = computerName;
+        }
+
+        public ManagementObjectCollection GetManagementObjectCollection(string className, string nameSpace, string fields = "*")
         {
             ManagementObjectSearcher searcher;
 
             try
             {
-                ManagementScope scope = new ManagementScope($"\\\\{this.ComputerName}\\{nameSpace}");
+                ManagementScope scope = new ManagementScope($"\\\\{this.computerName}\\{nameSpace}");
                 ObjectQuery query = new ObjectQuery($"SELECT {fields} FROM {className}");
 
                 scope.Connect();
@@ -26,7 +31,7 @@ namespace DDAGUI.WMIProperties
             catch (ManagementException e)
             {
 #if DEBUG
-                throw new ManagementException("Error of {getManagementObjectCollection}:\n" + e.ToString());
+                throw new ManagementException("Error of {GetManagementObjectCollection}:\n" + e.ToString());
 #else
                 throw new ManagementException($"Failed to connect to WMI namespace {nameSpace} on {ComputerName}: {e.Message}");
 #endif
@@ -36,7 +41,7 @@ namespace DDAGUI.WMIProperties
                 //
             }
 
-            return (searcher != null) ? searcher.Get() : null;
+            return searcher?.Get();
         }
     }
 }
