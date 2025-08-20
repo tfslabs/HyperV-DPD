@@ -35,7 +35,7 @@
     <DebugSymbols>true</DebugSymbols>
     <DebugType>full</DebugType>
     <Optimize>false</Optimize>
-    <OutputPath>..\!bin!\DDA GUI\Debug\x86</OutputPath>
+    <OutputPath>.\bin\DDA GUI\Debug\x86</OutputPath>
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
@@ -44,13 +44,13 @@
     <PlatformTarget>x86</PlatformTarget>
     <DebugType>full</DebugType>
     <Optimize>true</Optimize>
-    <OutputPath>..\!bin!\DDA GUI\Release\x86</OutputPath>
+    <OutputPath>.\bin\DDA GUI\Release\x86</OutputPath>
     <DefineConstants>
     </DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
-    <DocumentationFile>..\!bin!\DDA GUI\Release\x86\Hyper-V DDA GUI.xml</DocumentationFile>
+    <DocumentationFile>.\bin\DDA GUI\Release\x86\Hyper-V DDA GUI.xml</DocumentationFile>
     <DebugSymbols>true</DebugSymbols>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|x64' ">
@@ -58,7 +58,7 @@
     <DebugSymbols>true</DebugSymbols>
     <DebugType>full</DebugType>
     <Optimize>false</Optimize>
-    <OutputPath>..\!bin!\DDA GUI\Debug\x64</OutputPath>
+    <OutputPath>.\bin\DDA GUI\Debug\x64</OutputPath>
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
@@ -67,14 +67,14 @@
     <PlatformTarget>x64</PlatformTarget>
     <DebugType>full</DebugType>
     <Optimize>true</Optimize>
-    <OutputPath>..\!bin!\DDA GUI\Release\x64</OutputPath>
+    <OutputPath>.\bin\DDA GUI\Release\x64</OutputPath>
     <DefineConstants>
     </DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
     <Prefer32Bit>false</Prefer32Bit>
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
-    <DocumentationFile>..\!bin!\DDA GUI\Release\x64\Hyper-V DDA GUI.xml</DocumentationFile>
+    <DocumentationFile>.\bin\DDA GUI\Release\x64\Hyper-V DDA GUI.xml</DocumentationFile>
     <DebugSymbols>true</DebugSymbols>
   </PropertyGroup>
   <PropertyGroup />
