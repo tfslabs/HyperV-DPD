@@ -1,19 +1,20 @@
-﻿using System;
+﻿using DDAGUI.WMIMethods;
+using System;
+using System.Management;
+using System.Runtime.InteropServices;
 using System.Windows;
-
-using DDAGUI.WMIProperties;
-
 
 namespace DDAGUI
 {
     public partial class AddDevice : Window
     {
         protected string deviceId;
-        protected WMIWrapper wmi;
+        protected MachineMethods machine;
 
-        public AddDevice(WMIWrapper wmi)
+        public AddDevice(MachineMethods machine)
         {
-            this.wmi = wmi;
+            this.machine = machine;
+            machine.Connect("root\\cimv2");
             InitializeComponent();
         }
 
@@ -25,8 +26,8 @@ namespace DDAGUI
         {
             if (DeviceList.SelectedItem != null)
             {
-                this.deviceId = DeviceList.SelectedItem.GetType().GetProperty("DeviceId").GetValue(DeviceList.SelectedItem, null).ToString();
-                this.DialogResult = true;
+                deviceId = DeviceList.SelectedItem.GetType().GetProperty("DeviceId").GetValue(DeviceList.SelectedItem, null).ToString();
+                DialogResult = true;
             }
             else
             {
@@ -36,7 +37,7 @@ namespace DDAGUI
 
         private void AddDeviceCloseButton_Click(object sender, RoutedEventArgs e)
         {
-            this.Close();
+            Close();
         }
 
         /*
@@ -45,7 +46,7 @@ namespace DDAGUI
 
         public string GetDeviceId()
         {
-            UpdateDevices(this.wmi);
+            UpdateDevices();
             ShowDialog();
             
             if (!(deviceId == null || deviceId == string.Empty))
@@ -60,27 +61,56 @@ namespace DDAGUI
             return deviceId;
         }
 
-        private void UpdateDevices(WMIWrapper wmi)
+        private void UpdateDevices()
         {
             DeviceList.Items.Clear();
-            foreach (var device in wmi.GetManagementObjectCollection("Win32_PnPEntity", "root\\cimv2", "Status, PNPClass, Name, DeviceID"))
+            
+            try
             {
-                string deviceStatus = device["Status"]?.ToString() ?? "Unknown";
-                string deviceType = device["PNPClass"]?.ToString() ?? "Unknown";
-                string deviceName = device["Name"]?.ToString() ?? "Unknown";
-                string deviceId = device["DeviceID"]?.ToString() ?? "Unknown";
-
-                if (deviceStatus != "OK" || !deviceId.StartsWith("PCI")) {
-                    continue;
-                }
-
-                DeviceList.Items.Add(new
+                foreach (var device in machine.GetObjects("Win32_PnPEntity", "Status, PNPClass, Name, DeviceID"))
                 {
-                    DeviceStatus = deviceStatus,
-                    DeviceType = deviceType,
-                    DeviceName = deviceName,
-                    DeviceId = deviceId
-                });
+                    string deviceStatus = device["Status"]?.ToString() ?? "Unknown";
+                    string deviceType = device["PNPClass"]?.ToString() ?? "Unknown";
+                    string deviceName = device["Name"]?.ToString() ?? "Unknown";
+                    string deviceId = device["DeviceID"]?.ToString() ?? "Unknown";
+
+                    if (deviceStatus != "OK" || !deviceId.StartsWith("PCI"))
+                    {
+                        continue;
+                    }
+
+                    DeviceList.Items.Add(new
+                    {
+                        DeviceStatus = deviceStatus,
+                        DeviceType = deviceType,
+                        DeviceName = deviceName,
+                        DeviceId = deviceId
+                    });
+                }
+            }
+            catch (UnauthorizedAccessException ex)
+            {
+#if DEBUG
+                MessageBox.Show(ex.ToString(), "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+#else
+                MessageBox.Show($"Failed to catch the Authenticate with {machine.GetComputerName()}: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+#endif
+            }
+            catch (COMException ex)
+            {
+#if DEBUG
+                MessageBox.Show(ex.ToString(), "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+#else
+                MessageBox.Show($"Failed to reach {machine.GetComputerName()}: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+#endif
+            }
+            catch (ManagementException ex)
+            {
+#if DEBUG
+                MessageBox.Show(ex.ToString(), "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+#else
+                MessageBox.Show($"Failed to catch the Management Method: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+#endif
             }
         }
     }

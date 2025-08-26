@@ -1,16 +1,26 @@
-﻿using DDAGUI.WMIProperties;
+﻿using DDAGUI.WMIMethods;
 using System;
 using System.Collections.Generic;
 using System.Management;
+using System.Runtime.InteropServices;
+using System.Security;
+using System.Threading.Tasks;
 using System.Windows;
 
 namespace DDAGUI
 {
     public partial class MainWindow : Window
     {
-        protected WMIWrapper wmi;
-        protected string computerName = "localhost";
-        private Dictionary<int, string> vmStatusMap = new Dictionary<int, string>
+        /*
+         * Msvm_PciExpress for Get-VMHostAssignableDevice
+         * 
+         */
+
+        /*
+         *  Global properties
+         */
+        protected MachineMethods machine;
+        private readonly Dictionary<int, string> vmStatusMap = new Dictionary<int, string>
         {
             {0,  "Unknown" },
             {1,  "Other" },
@@ -31,39 +41,37 @@ namespace DDAGUI
 
             StatusBarChangeBehaviour(true);
 
-            this.wmi = new WMIWrapper(computerName);
+            machine = new MachineMethods();
 
-            try
-            {
-                var hyerpvObjects = this.wmi.GetManagementObjectCollection("Msvm_ComputerSystem", "root\\virtualization\\v2");
-                if (hyerpvObjects == null || hyerpvObjects.Count == 0)
-                {
-                    MessageBox.Show("Please ensure Hyper-V is installed and running on this machine.\nApplication shutting down...", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
-                    Application.Current.Shutdown();
-                }
+            Loaded += MainWindow_Loaded;
 
-            }
-            catch (ManagementException e)
-            {
-                MessageBox.Show(e.ToString(), "Error", MessageBoxButton.OK, MessageBoxImage.Error);
-                Application.Current.Shutdown();
-            }
+            StatusBarChangeBehaviour(false, "Done");
+        }
 
-            this.RefreshVMs();
-
-            StatusBarChangeBehaviour(false);
+        private async void MainWindow_Loaded(object sender, RoutedEventArgs e)
+        {
+            await ReinitializeConnection();
         }
 
         /*
          * Button and UI methods behaviour....
          */
 
-        private void WMIConnect_Click(object sender, RoutedEventArgs e)
+        private async void ConnectToAnotherComputer_Button(object sender, RoutedEventArgs e)
         {
-            StatusBarChangeBehaviour(true);
+            StatusBarChangeBehaviour(true, "Connecting");
+
             ConnectForm connectForm = new ConnectForm();
-            connectForm.ShowDialog();
-            StatusBarChangeBehaviour(false);
+
+            (string computerName, string username, SecureString password) userCredential = connectForm.ReturnValue();
+
+            if (userCredential.computerName != "")
+            {
+                machine = (userCredential.computerName.Equals("localhost")) ? new MachineMethods() : new MachineMethods(userCredential);
+                await ReinitializeConnection();
+            }
+
+            StatusBarChangeBehaviour(false, "Done");
         }
 
         private void QuitMainWindow_Click(object sender, RoutedEventArgs e)
@@ -73,24 +81,30 @@ namespace DDAGUI
 
         private void AddDevice_Click(object sender, RoutedEventArgs e)
         {
-            StatusBarChangeBehaviour(true);
-
             if (VMList.SelectedItem != null)
             {
                 try
                 {
-                    AddDevice addDevice = new AddDevice(this.wmi);
+                    StatusBarChangeBehaviour(true, "Adding devices");
+
+                    AddDevice addDevice = new AddDevice(machine);
+                    
                     string deviceId = addDevice.GetDeviceId();
                     string vmName = VMList.SelectedItem.GetType().GetProperty("VMName").GetValue(VMList.SelectedItem, null).ToString();
-                    //MessageBox.Show($"Add device {deviceId} into {vmName}", "Info", MessageBoxButton.OK, MessageBoxImage.Information);
-                    StatusBarChangeBehaviour(false);
+                    
+                    MessageBox.Show($"Add device {deviceId} into {vmName}", "Info", MessageBoxButton.OK, MessageBoxImage.Information);
+                    
+                    StatusBarChangeBehaviour(false, "Done");
                 }
+#if DEBUG
                 catch (NullReferenceException ex)
                 {
-#if DEBUG
+
                     MessageBox.Show(ex.Message, "Error", MessageBoxButton.OK, MessageBoxImage.Error);
                     StatusBarChangeBehaviour(false, "No Device Added");
 #else
+                catch (NullReferenceException)
+                {
                     StatusBarChangeBehaviour(false, "No Device Added");
 #endif
                 }
@@ -116,14 +130,9 @@ namespace DDAGUI
 
         }
 
-        private void IsGuestControlledCacheTypes_Click(object sender, RoutedEventArgs e)
-        {
-
-        }
-
         private void HyperVServiceStatus_Click(object sender, RoutedEventArgs e)
         {
-            HyperVStatus hyperVStatus = new HyperVStatus(this.wmi);
+            HyperVStatus hyperVStatus = new HyperVStatus(machine);
             hyperVStatus.ShowDialog();
         }
 
@@ -137,13 +146,13 @@ namespace DDAGUI
 
         }
 
-        private void HyperVRefresh_Click(object sender, RoutedEventArgs e)
+        private async void HyperVRefresh_Click(object sender, RoutedEventArgs e)
         {
             StatusBarChangeBehaviour(true);
 
-            RefreshVMs();
+            await RefreshVMs();
 
-            StatusBarChangeBehaviour(false);
+            StatusBarChangeBehaviour(false, "Done");
         }
 
         private void AboutBox_Click(object sender, RoutedEventArgs e)
@@ -154,39 +163,145 @@ namespace DDAGUI
 
         private void ChangeCacheTypes_Click(object sender, RoutedEventArgs e)
         {
+            if (VMList.SelectedItem != null)
+            {
+                string vmName = VMList.SelectedItem.GetType().GetProperty("VMName").GetValue(VMList.SelectedItem, null).ToString();
+                MessageBoxResult isEnableMemCache = MessageBox.Show(
+                        $"Do you want to enable guest control cache type for {vmName}? (Yes to enable, No to disable, Cancel to leave it as is)",
+                        "Enable Guest Control Cache", MessageBoxButton.YesNoCancel, MessageBoxImage.Question);
 
+                if (isEnableMemCache == MessageBoxResult.Yes)
+                {
+
+                }
+                else if (isEnableMemCache == MessageBoxResult.No)
+                {
+
+                }
+                else
+                {
+
+                }
+            }
+            else
+            {
+                MessageBox.Show("Please select a VM to add a device", "Warning", MessageBoxButton.OK, MessageBoxImage.Warning);
+            }
         }
 
         /*
          * Non-button methods
          */
 
-        private void RefreshVMs()
+        private async Task ReinitializeConnection()
         {
+            try
+            {
+                machine.Connect("root\\virtualization\\v2");
+                var hyerpvObjects = machine.GetObjects("Msvm_ComputerSystem", "*");
+                if (hyerpvObjects == null || hyerpvObjects.Count == 0)
+                {
+                    MessageBox.Show("Please ensure Hyper-V is installed and running on this machine. You can still control the Hyper-V server remotely.", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                }
 
+                machine.Connect("root\\cimv2");
+                var getMachineInfo = machine.GetObjects("Win32_OperatingSystem", "BuildNumber, Caption");
+                foreach (var osInfo in getMachineInfo)
+                {
+                    string osName = osInfo["Caption"]?.ToString();
+                    int buildNumber = int.Parse(osInfo["BuildNumber"]?.ToString());
+
+                    if (buildNumber < 14393)
+                    {
+                        MessageBox.Show("Your Windows host is too old to use Hyper-V DDA. Please consider to upgrade!", "Warning", MessageBoxButton.OK, MessageBoxImage.Warning);
+                    }
+
+                    if (!osName.Trim().ToLower().Contains("server"))
+                    {
+                        MessageBox.Show("Your SKU of Windows may not support Hyper-V with DDA. Please use the SKU \"Server\".", "Warning", MessageBoxButton.OK, MessageBoxImage.Warning);
+                    }
+                }
+            }
+            catch (UnauthorizedAccessException ex)
+            {
+#if DEBUG
+                MessageBox.Show(ex.ToString(), "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+#else
+                MessageBox.Show($"Failed to catch the Authenticate with {machine.GetComputerName()}: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+#endif
+            }
+            catch (COMException ex)
+            {
+#if DEBUG
+                MessageBox.Show(ex.ToString(), "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+#else
+                MessageBox.Show($"Failed to reach {machine.GetComputerName()}: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+#endif
+            }
+            catch (ManagementException ex)
+            {
+#if DEBUG
+                MessageBox.Show(ex.ToString(), "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+#else
+                MessageBox.Show($"Failed to catch the Management Method: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+#endif
+            }
+
+            await RefreshVMs();
+        }
+
+        private async Task RefreshVMs()
+        {
             VMList.Items.Clear();
 
             try
             {
-                var devices = this.wmi.GetManagementObjectCollection("Msvm_ComputerSystem", "root\\virtualization\\v2", "Caption, ElementName, Name, EnabledState");
-                foreach (var vm in devices)
+                await Task.Run(() =>
                 {
-                    if (vm["Caption"].Equals("Virtual Machine"))
+                    machine.Connect("root\\virtualization\\v2");
+
+                    var vms = machine.GetObjects("Msvm_ComputerSystem", "Caption, ElementName, Name, EnabledState");
+                    foreach (ManagementObject vm in vms)
                     {
-                        string vmName = vm["ElementName"]?.ToString() ?? vm["Name"].ToString();
-                        string vmStatus = vmStatusMap[int.Parse(vm["EnabledState"]?.ToString() ?? "0")];
-                        VMList.Items.Add(new
+                        if (vm["Caption"].Equals("Virtual Machine"))
                         {
-                            VMName = vmName,
-                            VMStatus = vmStatus
-                        });
+                            string vmName = vm["ElementName"]?.ToString() ?? vm["Name"].ToString();
+                            string vmStatus = vmStatusMap[int.Parse(vm["EnabledState"]?.ToString() ?? "0")];
+                            Dispatcher.Invoke(() =>
+                            {
+                                VMList.Items.Add(new
+                                {
+                                    VMName = vmName,
+                                    VMStatus = vmStatus
+                                });
+                            });
+                        }
                     }
-                }
+                });
             }
-            catch (ManagementException e)
+            catch (UnauthorizedAccessException ex)
             {
-                MessageBox.Show(e.ToString(), "Error", MessageBoxButton.OK, MessageBoxImage.Error);
-                Application.Current.Shutdown();
+#if DEBUG
+                MessageBox.Show(ex.ToString(), "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+#else
+                MessageBox.Show($"Failed to catch the Authenticate with {machine.GetComputerName()}: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+#endif
+            }
+            catch (COMException ex)
+            {
+#if DEBUG
+                MessageBox.Show(ex.ToString(), "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+#else
+                MessageBox.Show($"Failed to reach {machine.GetComputerName()}: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+#endif
+            }
+            catch (ManagementException ex)
+            {
+#if DEBUG
+                MessageBox.Show(ex.ToString(), "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+#else
+                MessageBox.Show($"Failed to catch the Management Method: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+#endif
             }
         }
 

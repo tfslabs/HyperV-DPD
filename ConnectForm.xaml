@@ -4,20 +4,58 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:DDAGUI"
-        Title="Connect to Computer" Height="130" Width="420" ResizeMode="NoResize" SizeToContent="WidthAndHeight">
-    <Grid Width="420" Height="120" ScrollViewer.VerticalScrollBarVisibility="Disabled">
-        <TextBlock Name="TextBoxDescription" TextWrapping="Wrap" Width="400" Margin="10,5,10,94" FontSize="14">
-            Specifiy a remote computer using DNS name, or IP Address
-        </TextBlock>
-        <Grid HorizontalAlignment="Center" Height="25" VerticalAlignment="Top" Width="400" Margin="0,26,0,0">
-            <TextBlock HorizontalAlignment="Left" Width="104" VerticalAlignment="Center" FontSize="14">Computer Name</TextBlock>
-            <TextBox x:Name="ComputerNameTextBox" HorizontalAlignment="Left" VerticalAlignment="Center" Width="290" Margin="110,0,0,0"/>
+        Title="Connect to Computer" 
+        Height="160"
+        Width="400"
+        ResizeMode="NoResize" 
+        SizeToContent="WidthAndHeight">
+    <Grid Width="400">
+        <Grid.Margin>
+            <Thickness Bottom="5" Top="2"></Thickness>
+        </Grid.Margin>
+        <Grid.RowDefinitions>
+            <RowDefinition/>
+            <RowDefinition/>
+            <RowDefinition/>
+            <RowDefinition/>
+            <RowDefinition/>
+        </Grid.RowDefinitions>
+        <Grid Grid.Row="0" Margin="10,0,10,0">
+            <Label VerticalAlignment="Center">Connect to another computer using domain or IP</Label>
         </Grid>
-        <CheckBox Content="Change Credential" HorizontalAlignment="Left" VerticalAlignment="Top" x:Name="ChangeCred" Margin="10,56,0,0" FontSize="14" IsChecked="False" Height="19"/>
-        <Grid HorizontalAlignment="Center" Height="22" VerticalAlignment="Top" Width="400" Margin="0,83,0,0" >
-            <Button Content="Connect" HorizontalAlignment="Left" VerticalAlignment="Top" Height="22" Width="80" x:Name="ConnectToComputer"/>
-            <Button Content="Use Local _Computer" HorizontalAlignment="Center" VerticalAlignment="Top" Height="22" Width="235" x:Name="ConnectToLocal"/>
-            <Button Content="Cancel" HorizontalAlignment="Right" VerticalAlignment="Top" Height="22" Width="80" x:Name="Cancel"/>
+        <Grid Grid.Row="1" Margin="10,0,10,0">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="120"/>
+                <ColumnDefinition Width="260"/>
+            </Grid.ColumnDefinitions>
+            <Label Grid.Column="0" VerticalAlignment="Center">Computer Name</Label>
+            <TextBox x:Name="ComputerName_TextBox" Grid.Column="1" VerticalAlignment="Center"/>
+        </Grid>
+        <Grid Grid.Row="2" Margin="10,0,10,0">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="120"/>
+                <ColumnDefinition Width="260"/>
+            </Grid.ColumnDefinitions>
+            <Label Grid.Column="0" VerticalAlignment="Center">User Name</Label>
+            <TextBox x:Name="UserName_TextBox" Grid.Column="1" VerticalAlignment="Center"/>
+        </Grid>
+        <Grid Grid.Row="3" Margin="10,0,10,0">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="120"/>
+                <ColumnDefinition Width="260"/>
+            </Grid.ColumnDefinitions>
+            <Label Grid.Column="0" VerticalAlignment="Center">Password</Label>
+            <PasswordBox x:Name="Password_TextBox" Grid.Column="1" VerticalAlignment="Center"/>
+        </Grid>
+        <Grid Grid.Row="4" Margin="10,0,10,0">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="90"/>
+                <ColumnDefinition Width="200"/>
+                <ColumnDefinition Width="90"/>
+            </Grid.ColumnDefinitions>
+            <Button Margin="0,0,5,0" Grid.Column="0" VerticalAlignment="Center" Click="ConnetToExternal_Button">Connect</Button>
+            <Button Margin="5,0,5,0" Grid.Column="1" VerticalAlignment="Center" Click="ConnectToLocal_Button">Connect to Local Computer</Button>
+            <Button Margin="5,0,0,0" Grid.Column="2" VerticalAlignment="Center" Click="Cancel_Button">Cancel</Button>
         </Grid>
     </Grid>
 </Window>

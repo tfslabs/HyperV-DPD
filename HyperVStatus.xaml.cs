@@ -1,14 +1,16 @@
-﻿using System.Collections.Generic;
+﻿using DDAGUI.WMIMethods;
+using System;
+using System.Collections.Generic;
+using System.Management;
+using System.Runtime.InteropServices;
 using System.Windows;
-
-using DDAGUI.WMIProperties;
 
 namespace DDAGUI
 {
     public partial class HyperVStatus : Window
     {
-        protected WMIWrapper wmi;
-        protected HashSet<string> serviceNames = new HashSet<string>()
+        protected MachineMethods machine;
+        protected readonly HashSet<string> serviceNames = new HashSet<string>()
         {
             "HvHost",
             "vmickvpexchange",
@@ -24,11 +26,11 @@ namespace DDAGUI
             "vmicvss"
         };
 
-        public HyperVStatus(WMIWrapper wmi)
+        public HyperVStatus(MachineMethods machine)
         {
             InitializeComponent();
-            this.wmi = wmi;
-            this.RefreshServices();
+            this.machine = machine;
+            RefreshServices();
         }
 
         /*
@@ -38,7 +40,7 @@ namespace DDAGUI
         private void Refresh_Click(object sender, RoutedEventArgs e)
         {
             ListHVSrv.Items.Clear();
-            this.RefreshServices();
+            RefreshServices();
         }
 
         /*
@@ -47,18 +49,46 @@ namespace DDAGUI
 
         private void RefreshServices()
         {
-            foreach (var srv in this.wmi.GetManagementObjectCollection("Win32_Service", "root\\cimv2"))
+            try
             {
-                if (srv["Name"] == null || !serviceNames.Contains(srv["Name"].ToString()))
+                machine.Connect("root\\cimv2");
+                foreach (var srv in machine.GetObjects("Win32_Service", "Name, Caption, State"))
                 {
-                    continue;
-                }
+                    if (srv["Name"] == null || !serviceNames.Contains(srv["Name"].ToString()))
+                    {
+                        continue;
+                    }
 
-                ListHVSrv.Items.Add(new
-                {
-                    ServiceName = srv["Caption"]?.ToString() ?? "Unknown",
-                    ServiceStatus = srv["State"]?.ToString() ?? "Unknown"
-                });
+                    ListHVSrv.Items.Add(new
+                    {
+                        ServiceName = srv["Caption"]?.ToString() ?? "Unknown",
+                        ServiceStatus = srv["State"]?.ToString() ?? "Unknown"
+                    });
+                }
+            }
+            catch (UnauthorizedAccessException ex)
+            {
+#if DEBUG
+                MessageBox.Show(ex.ToString(), "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+#else
+                MessageBox.Show($"Failed to catch the Authenticate with {machine.GetComputerName()}: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+#endif
+            }
+            catch (COMException ex)
+            {
+#if DEBUG
+                MessageBox.Show(ex.ToString(), "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+#else
+                MessageBox.Show($"Failed to reach {machine.GetComputerName()}: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+#endif
+            }
+            catch (ManagementException ex)
+            {
+#if DEBUG
+                MessageBox.Show(ex.ToString(), "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+#else
+                MessageBox.Show($"Failed to catch the Management Method: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+#endif
             }
         }
     }
