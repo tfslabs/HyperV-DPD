@@ -123,6 +123,7 @@
       <DependentUpon>HyperVStatus.xaml</DependentUpon>
     </Compile>
     <Compile Include="WMIProperties\MachineMethods.cs" />
+    <Compile Include="WMIProperties\WMIDefaultValues.cs" />
     <Page Include="ConnectForm.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>

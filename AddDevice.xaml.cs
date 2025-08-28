@@ -1,4 +1,4 @@
-﻿using DDAGUI.WMIMethods;
+﻿using DDAGUI.WMIProperties;
 using System;
 using System.Management;
 using System.Runtime.InteropServices;

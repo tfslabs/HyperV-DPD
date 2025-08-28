@@ -1,11 +1,16 @@
-﻿using DDAGUI.WMIMethods;
+﻿using DDAGUI.WMIProperties;
+
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Management;
+using System.Net.NetworkInformation;
 using System.Runtime.InteropServices;
 using System.Security;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Windows;
+using System.Xml.Linq;
 
 namespace DDAGUI
 {
@@ -13,27 +18,14 @@ namespace DDAGUI
     {
         /*
          * Msvm_PciExpress for Get-VMHostAssignableDevice
-         * 
+         * Msvm_PciExpressSettingData for Get-VMAssignableDevice -VMName $vm
          */
 
         /*
          *  Global properties
          */
-        protected MachineMethods machine;
-        private readonly Dictionary<int, string> vmStatusMap = new Dictionary<int, string>
-        {
-            {0,  "Unknown" },
-            {1,  "Other" },
-            {2,  "Running" },
-            {3,  "Stopped" },
-            {4,  "Shutting down" },
-            {5,  "Not applicable" },
-            {6,  "Enabled but Offline" },
-            {7,  "In Test" },
-            {8,  "Degraded" },
-            {9,  "Quiesce" },
-            {10, "Starting" }
-        };
+        private MachineMethods machine;
+        private Dictionary<string, (string vmName, string vmStatus, List<string> devices)> vmObjects;
 
         public MainWindow()
         {
@@ -42,13 +34,14 @@ namespace DDAGUI
             StatusBarChangeBehaviour(true);
 
             machine = new MachineMethods();
+            vmObjects = new Dictionary<string, (string vmName, string vmStatus, List<string> devices)>();
 
             Loaded += MainWindow_Loaded;
 
             StatusBarChangeBehaviour(false, "Done");
         }
 
-        private async void MainWindow_Loaded(object sender, RoutedEventArgs e)
+        public async void MainWindow_Loaded(object sender, RoutedEventArgs e)
         {
             await ReinitializeConnection();
         }
@@ -189,6 +182,34 @@ namespace DDAGUI
             }
         }
 
+        private async void VMList_Select(object sender, RoutedEventArgs e)
+        {
+            if (VMList.SelectedItem != null)
+            {
+                DevicePerVMList.Items.Clear();
+                string vmId = VMList.SelectedItem.GetType().GetProperty("VMId").GetValue(VMList.SelectedItem, null).ToString();
+                await Task.Run(() => { 
+                    foreach (var vmObject in vmObjects)
+                    {
+                        if (vmObject.Key.Equals(vmId))
+                        {
+                            foreach (string deviceInstanceid in vmObject.Value.devices)
+                            {
+                                Dispatcher.Invoke(() =>
+                                {
+                                    DevicePerVMList.Items.Add(new
+                                    {
+                                        DeviceID = deviceInstanceid,
+                                    });
+                                });
+                            }
+                            break;
+                        }
+                    }
+                });
+            }
+        }
+
         /*
          * Non-button methods
          */
@@ -253,6 +274,7 @@ namespace DDAGUI
         private async Task RefreshVMs()
         {
             VMList.Items.Clear();
+            DevicePerVMList.Items.Clear();
 
             try
             {
@@ -260,22 +282,42 @@ namespace DDAGUI
                 {
                     machine.Connect("root\\virtualization\\v2");
 
-                    var vms = machine.GetObjects("Msvm_ComputerSystem", "Caption, ElementName, Name, EnabledState");
-                    foreach (ManagementObject vm in vms)
+                    foreach (ManagementObject vmInfo in machine.GetObjects("Msvm_ComputerSystem", "Caption, ElementName, EnabledState, Name").Cast<ManagementObject>())
                     {
-                        if (vm["Caption"].Equals("Virtual Machine"))
+                        if (vmInfo["Caption"].ToString().Equals("Virtual Machine"))
                         {
-                            string vmName = vm["ElementName"]?.ToString() ?? vm["Name"].ToString();
-                            string vmStatus = vmStatusMap[int.Parse(vm["EnabledState"]?.ToString() ?? "0")];
-                            Dispatcher.Invoke(() =>
-                            {
-                                VMList.Items.Add(new
-                                {
-                                    VMName = vmName,
-                                    VMStatus = vmStatus
-                                });
-                            });
+                            string vmName = vmInfo["ElementName"].ToString();
+                            string vmStatus = WMIDefaultValues.vmStatusMap[int.Parse(vmInfo["EnabledState"]?.ToString() ?? "0")];
+                            vmObjects[vmInfo["Name"].ToString()] = (vmName, vmStatus, new List<string>());
                         }
+                    }
+
+                    foreach (ManagementObject deviceid in machine.GetObjects("Msvm_PciExpressSettingData", "Caption, HostResource, InstanceID").Cast<ManagementObject>())
+                    {
+                        if (deviceid["Caption"].ToString().Equals("PCI Express Port"))
+                        {
+                            string hostResources = ((string[])deviceid["HostResource"])[0];
+                            string[] payload = deviceid["InstanceID"].ToString().Replace("Microsoft:", "").Split('\\');
+
+                            if (vmObjects.ContainsKey(payload[0]))
+                            {
+                                string key = Regex.Replace(((string[])hostResources.Split(','))[1], "DeviceID=\"Microsoft:[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-4[0-9a-fA-F]{3}-[89aAbB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}\\\\\\\\", "").Replace("\"", "");
+                                vmObjects[payload[0]].devices.Add(key);
+                            }
+                        }
+                    }
+
+                    foreach (var vmObject in vmObjects)
+                    {
+                        Dispatcher.Invoke(() =>
+                        {
+                            VMList.Items.Add(new
+                            {
+                                VMId = vmObject.Key,
+                                VMName = vmObject.Value.vmName,
+                                VMStatus = vmObject.Value.vmStatus
+                            });
+                        });
                     }
                 });
             }

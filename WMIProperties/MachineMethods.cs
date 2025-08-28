@@ -1,9 +1,7 @@
-﻿using System.Linq;
-using System.Management;
+﻿using System.Management;
 using System.Security;
-using System.Threading.Tasks;
 
-namespace DDAGUI.WMIMethods
+namespace DDAGUI.WMIProperties
 {
     public class MachineMethods
     {
@@ -85,19 +83,6 @@ namespace DDAGUI.WMIMethods
         /*
          * Call WMI Method
          */
-        public async Task CallMethod(string className, string fields, string methodName, object[] args)
-        {
-            ObjectQuery query = new ObjectQuery($"SELECT {fields} FROM {className}");
-            await Task.Run(() =>
-            {
-                using (var searcher = new ManagementObjectSearcher(scope, query))
-                {
-                    foreach (ManagementObject manageObject in searcher.Get().Cast<ManagementObject>())
-                    {
-                        manageObject.InvokeMethod(methodName, args);
-                    }
-                }
-            });
-        }
+        
     }
 }

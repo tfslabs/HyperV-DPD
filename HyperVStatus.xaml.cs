@@ -1,6 +1,5 @@
-﻿using DDAGUI.WMIMethods;
+﻿using DDAGUI.WMIProperties;
 using System;
-using System.Collections.Generic;
 using System.Management;
 using System.Runtime.InteropServices;
 using System.Windows;
@@ -10,21 +9,7 @@ namespace DDAGUI
     public partial class HyperVStatus : Window
     {
         protected MachineMethods machine;
-        protected readonly HashSet<string> serviceNames = new HashSet<string>()
-        {
-            "HvHost",
-            "vmickvpexchange",
-            "gcs",
-            "vmicguestinterface",
-            "vmicshutdown",
-            "vmicheartbeat",
-            "vmcompute",
-            "vmicvmsession",
-            "vmicrdv",
-            "vmictimesync",
-            "vmms",
-            "vmicvss"
-        };
+        
 
         public HyperVStatus(MachineMethods machine)
         {
@@ -54,7 +39,7 @@ namespace DDAGUI
                 machine.Connect("root\\cimv2");
                 foreach (var srv in machine.GetObjects("Win32_Service", "Name, Caption, State"))
                 {
-                    if (srv["Name"] == null || !serviceNames.Contains(srv["Name"].ToString()))
+                    if (srv["Name"] == null || !WMIDefaultValues.serviceNames.Contains(srv["Name"].ToString()))
                     {
                         continue;
                     }

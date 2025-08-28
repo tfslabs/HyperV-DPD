@@ -61,11 +61,12 @@
                     <RowDefinition Height="300"/>
                 </Grid.RowDefinitions>
                 <Label HorizontalAlignment="Left" VerticalAlignment="Center" Grid.Row="0" Content="Virtual Machine List" />
-                <ListView x:Name="VMList" Grid.Row="1">
+                <ListView x:Name="VMList" Grid.Row="1" SelectionChanged="VMList_Select">
                     <ListView.View>
                         <GridView>
-                            <GridViewColumn Header="Name" DisplayMemberBinding="{Binding VMName}" Width="250"/>
-                            <GridViewColumn Header="Status" DisplayMemberBinding="{Binding VMStatus}" Width="120"/>
+                            <GridViewColumn Header="ID" DisplayMemberBinding="{Binding VMId}" Width="150"/>
+                            <GridViewColumn Header="Name" DisplayMemberBinding="{Binding VMName}" Width="150"/>
+                            <GridViewColumn Header="Status" DisplayMemberBinding="{Binding VMStatus}" Width="60"/>
                         </GridView>
                     </ListView.View>
                 </ListView>
@@ -82,8 +83,7 @@
                 <ListView x:Name="DevicePerVMList" Grid.Row="1">
                     <ListView.View>
                         <GridView>
-                            <GridViewColumn Header="Name" DisplayMemberBinding="{Binding DeviceName}" Width="250"/>
-                            <GridViewColumn Header="Device ID" DisplayMemberBinding="{Binding DeviceID}" Width="120"/>
+                            <GridViewColumn Header="Device Instance ID" DisplayMemberBinding="{Binding DeviceID}" Width="370"/>
                         </GridView>
                     </ListView.View>
                 </ListView>
