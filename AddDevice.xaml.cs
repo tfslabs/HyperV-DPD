@@ -48,7 +48,7 @@ namespace DDAGUI
         {
             UpdateDevices();
             ShowDialog();
-            
+
             if (!(deviceId == null || deviceId == string.Empty))
             {
                 deviceId = deviceId.Trim();
@@ -64,7 +64,7 @@ namespace DDAGUI
         private void UpdateDevices()
         {
             DeviceList.Items.Clear();
-            
+
             try
             {
                 foreach (var device in machine.GetObjects("Win32_PnPEntity", "Status, PNPClass, Name, DeviceID"))

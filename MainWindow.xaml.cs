@@ -4,13 +4,11 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Management;
-using System.Net.NetworkInformation;
 using System.Runtime.InteropServices;
 using System.Security;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Windows;
-using System.Xml.Linq;
 
 namespace DDAGUI
 {
@@ -81,12 +79,12 @@ namespace DDAGUI
                     StatusBarChangeBehaviour(true, "Adding devices");
 
                     AddDevice addDevice = new AddDevice(machine);
-                    
+
                     string deviceId = addDevice.GetDeviceId();
                     string vmName = VMList.SelectedItem.GetType().GetProperty("VMName").GetValue(VMList.SelectedItem, null).ToString();
-                    
+
                     MessageBox.Show($"Add device {deviceId} into {vmName}", "Info", MessageBoxButton.OK, MessageBoxImage.Information);
-                    
+
                     StatusBarChangeBehaviour(false, "Done");
                 }
 #if DEBUG
@@ -104,18 +102,91 @@ namespace DDAGUI
             }
             else
             {
-                MessageBox.Show("Please select a VM to add a device", "Warning", MessageBoxButton.OK, MessageBoxImage.Warning);
+                MessageBox.Show("Please select a VM to add a device!", "Warning", MessageBoxButton.OK, MessageBoxImage.Warning);
             }
         }
 
         private void RemDevice_Click(object sender, RoutedEventArgs e)
         {
+            if (VMList.SelectedItems != null && DevicePerVMList.SelectedItems != null)
+            {
+                try
+                {
+                    string vmName = VMList.SelectedItem.GetType().GetProperty("VMName").GetValue(VMList.SelectedItem, null).ToString();
+                    string deviceId = DevicePerVMList.SelectedItem.GetType().GetProperty("DeviceID").GetValue(DevicePerVMList.SelectedItem, null).ToString();
 
+                    MessageBox.Show($"Remove device {deviceId} from {vmName}", "Info", MessageBoxButton.OK, MessageBoxImage.Information);
+                }
+                catch (UnauthorizedAccessException ex)
+                {
+#if DEBUG
+                    MessageBox.Show(ex.ToString(), "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+#else
+                    MessageBox.Show($"Failed to catch the Authenticate with {machine.GetComputerName()}: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+#endif
+                }
+                catch (COMException ex)
+                {
+#if DEBUG
+                    MessageBox.Show(ex.ToString(), "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+#else
+                    MessageBox.Show($"Failed to reach {machine.GetComputerName()}: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+#endif
+                }
+                catch (ManagementException ex)
+                {
+#if DEBUG
+                    MessageBox.Show(ex.ToString(), "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+#else
+                    MessageBox.Show($"Failed to catch the Management Method: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+#endif
+                }
+#if DEBUG
+                catch (NullReferenceException ex)
+                {
+
+                    MessageBox.Show(ex.Message, "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                    StatusBarChangeBehaviour(false, "No Device Selected");
+#else
+                catch (NullReferenceException)
+                {
+                    StatusBarChangeBehaviour(false, "No Device Selected");
+#endif
+                }
+            }
+            else
+            {
+                MessageBox.Show("Please select a VM and a device!", "Warning", MessageBoxButton.OK, MessageBoxImage.Warning);
+            }
         }
 
         private void CopyDevAddress_Click(object sender, RoutedEventArgs e)
         {
+            if (VMList.SelectedItems != null && DevicePerVMList.SelectedItems != null)
+            {
+                try
+                {
+                    string deviceId = DevicePerVMList.SelectedItem.GetType().GetProperty("DeviceID").GetValue(DevicePerVMList.SelectedItem, null).ToString();
+                    Clipboard.SetText(deviceId);
+                    MessageBox.Show($"Copied device ID {deviceId} into clipboard", "Info", MessageBoxButton.OK, MessageBoxImage.Information);
+                }
+#if DEBUG
+                catch (NullReferenceException ex)
+                {
 
+                    MessageBox.Show(ex.Message, "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                    StatusBarChangeBehaviour(false, "No Device Selected");
+#else
+                catch (NullReferenceException)
+                {
+                    StatusBarChangeBehaviour(false, "No Device Selected");
+#endif
+                }
+            }
+            else
+            {
+                MessageBox.Show("Please select a VM and a device!", "Warning", MessageBoxButton.OK, MessageBoxImage.Warning);
+            }
         }
 
         private void ChangeMemLocation_Click(object sender, RoutedEventArgs e)
@@ -158,22 +229,49 @@ namespace DDAGUI
         {
             if (VMList.SelectedItem != null)
             {
-                string vmName = VMList.SelectedItem.GetType().GetProperty("VMName").GetValue(VMList.SelectedItem, null).ToString();
-                MessageBoxResult isEnableMemCache = MessageBox.Show(
-                        $"Do you want to enable guest control cache type for {vmName}? (Yes to enable, No to disable, Cancel to leave it as is)",
-                        "Enable Guest Control Cache", MessageBoxButton.YesNoCancel, MessageBoxImage.Question);
-
-                if (isEnableMemCache == MessageBoxResult.Yes)
+                try
                 {
+                    string vmName = VMList.SelectedItem.GetType().GetProperty("VMName").GetValue(VMList.SelectedItem, null).ToString();
+                    MessageBoxResult isEnableMemCache = MessageBox.Show(
+                            $"Do you want to enable guest control cache type for {vmName}? (Yes to enable, No to disable, Cancel to leave it as is)",
+                            "Enable Guest Control Cache", MessageBoxButton.YesNoCancel, MessageBoxImage.Question);
 
+                    if (isEnableMemCache == MessageBoxResult.Yes)
+                    {
+
+                    }
+                    else if (isEnableMemCache == MessageBoxResult.No)
+                    {
+
+                    }
+                    else
+                    {
+
+                    }
                 }
-                else if (isEnableMemCache == MessageBoxResult.No)
+                catch (UnauthorizedAccessException ex)
                 {
-
+#if DEBUG
+                    MessageBox.Show(ex.ToString(), "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+#else
+                    MessageBox.Show($"Failed to catch the Authenticate with {machine.GetComputerName()}: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+#endif
                 }
-                else
+                catch (COMException ex)
                 {
-
+#if DEBUG
+                    MessageBox.Show(ex.ToString(), "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+#else
+                    MessageBox.Show($"Failed to reach {machine.GetComputerName()}: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+#endif
+                }
+                catch (ManagementException ex)
+                {
+#if DEBUG
+                    MessageBox.Show(ex.ToString(), "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+#else
+                    MessageBox.Show($"Failed to catch the Management Method: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+#endif
                 }
             }
             else
@@ -188,7 +286,8 @@ namespace DDAGUI
             {
                 DevicePerVMList.Items.Clear();
                 string vmId = VMList.SelectedItem.GetType().GetProperty("VMId").GetValue(VMList.SelectedItem, null).ToString();
-                await Task.Run(() => { 
+                await Task.Run(() =>
+                {
                     foreach (var vmObject in vmObjects)
                     {
                         if (vmObject.Key.Equals(vmId))
@@ -199,7 +298,7 @@ namespace DDAGUI
                                 {
                                     DevicePerVMList.Items.Add(new
                                     {
-                                        DeviceID = deviceInstanceid,
+                                        DeviceID = deviceInstanceid
                                     });
                                 });
                             }
@@ -301,7 +400,7 @@ namespace DDAGUI
 
                             if (vmObjects.ContainsKey(payload[0]))
                             {
-                                string key = Regex.Replace(((string[])hostResources.Split(','))[1], "DeviceID=\"Microsoft:[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-4[0-9a-fA-F]{3}-[89aAbB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}\\\\\\\\", "").Replace("\"", "");
+                                string key = Regex.Replace(((string[])hostResources.Split(','))[1], "DeviceID=\"Microsoft:[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-4[0-9a-fA-F]{3}-[89aAbB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}\\\\\\\\", "").Replace("\"", "").Replace("\\\\", "\\");
                                 vmObjects[payload[0]].devices.Add(key);
                             }
                         }

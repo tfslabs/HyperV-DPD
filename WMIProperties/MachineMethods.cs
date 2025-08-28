@@ -83,6 +83,6 @@ namespace DDAGUI.WMIProperties
         /*
          * Call WMI Method
          */
-        
+
     }
 }

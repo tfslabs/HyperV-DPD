@@ -9,7 +9,7 @@ namespace DDAGUI
     public partial class HyperVStatus : Window
     {
         protected MachineMethods machine;
-        
+
 
         public HyperVStatus(MachineMethods machine)
         {
