@@ -74,7 +74,7 @@ namespace DDAGUI
                     string deviceName = device["Name"]?.ToString() ?? "Unknown";
                     string deviceId = device["DeviceID"]?.ToString() ?? "Unknown";
 
-                    if (deviceStatus != "OK" || !deviceId.StartsWith("PCI"))
+                    if (!deviceId.StartsWith("PCI"))
                     {
                         continue;
                     }

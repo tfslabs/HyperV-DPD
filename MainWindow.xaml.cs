@@ -15,15 +15,10 @@ namespace DDAGUI
     public partial class MainWindow : Window
     {
         /*
-         * Msvm_PciExpress for Get-VMHostAssignableDevice
-         * Msvm_PciExpressSettingData for Get-VMAssignableDevice -VMName $vm
-         */
-
-        /*
          *  Global properties
          */
         private MachineMethods machine;
-        private Dictionary<string, (string vmName, string vmStatus, List<string> devices)> vmObjects;
+        private readonly Dictionary<string, (string vmName, string vmStatus, List<string> devices)> vmObjects;
 
         public MainWindow()
         {
@@ -108,55 +103,48 @@ namespace DDAGUI
 
         private void RemDevice_Click(object sender, RoutedEventArgs e)
         {
-            if (VMList.SelectedItems != null && DevicePerVMList.SelectedItems != null)
+            try
             {
-                try
-                {
-                    string vmName = VMList.SelectedItem.GetType().GetProperty("VMName").GetValue(VMList.SelectedItem, null).ToString();
-                    string deviceId = DevicePerVMList.SelectedItem.GetType().GetProperty("DeviceID").GetValue(DevicePerVMList.SelectedItem, null).ToString();
+                string vmName = VMList.SelectedItem.GetType().GetProperty("VMName").GetValue(VMList.SelectedItem, null).ToString();
+                string deviceId = DevicePerVMList.SelectedItem.GetType().GetProperty("DeviceID").GetValue(DevicePerVMList.SelectedItem, null).ToString();
 
-                    MessageBox.Show($"Remove device {deviceId} from {vmName}", "Info", MessageBoxButton.OK, MessageBoxImage.Information);
-                }
-                catch (UnauthorizedAccessException ex)
-                {
-#if DEBUG
-                    MessageBox.Show(ex.ToString(), "Error", MessageBoxButton.OK, MessageBoxImage.Error);
-#else
-                    MessageBox.Show($"Failed to catch the Authenticate with {machine.GetComputerName()}: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
-#endif
-                }
-                catch (COMException ex)
-                {
-#if DEBUG
-                    MessageBox.Show(ex.ToString(), "Error", MessageBoxButton.OK, MessageBoxImage.Error);
-#else
-                    MessageBox.Show($"Failed to reach {machine.GetComputerName()}: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
-#endif
-                }
-                catch (ManagementException ex)
-                {
-#if DEBUG
-                    MessageBox.Show(ex.ToString(), "Error", MessageBoxButton.OK, MessageBoxImage.Error);
-#else
-                    MessageBox.Show($"Failed to catch the Management Method: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
-#endif
-                }
-#if DEBUG
-                catch (NullReferenceException ex)
-                {
-
-                    MessageBox.Show(ex.Message, "Error", MessageBoxButton.OK, MessageBoxImage.Error);
-                    StatusBarChangeBehaviour(false, "No Device Selected");
-#else
-                catch (NullReferenceException)
-                {
-                    StatusBarChangeBehaviour(false, "No Device Selected");
-#endif
-                }
+                MessageBox.Show($"Remove device {deviceId} from {vmName}", "Info", MessageBoxButton.OK, MessageBoxImage.Information);
             }
-            else
+            catch (UnauthorizedAccessException ex)
             {
-                MessageBox.Show("Please select a VM and a device!", "Warning", MessageBoxButton.OK, MessageBoxImage.Warning);
+#if DEBUG
+                MessageBox.Show(ex.ToString(), "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+#else
+                MessageBox.Show($"Failed to catch the Authenticate with {machine.GetComputerName()}: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+#endif
+            }
+            catch (COMException ex)
+            {
+#if DEBUG
+                MessageBox.Show(ex.ToString(), "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+#else
+                MessageBox.Show($"Failed to reach {machine.GetComputerName()}: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+#endif
+            }
+            catch (ManagementException ex)
+            {
+#if DEBUG
+                MessageBox.Show(ex.ToString(), "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+#else
+                MessageBox.Show($"Failed to catch the Management Method: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+#endif
+            }
+#if DEBUG
+            catch (NullReferenceException ex)
+            {
+
+                MessageBox.Show(ex.Message, "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                StatusBarChangeBehaviour(false, "No Device Selected");
+#else
+            catch (NullReferenceException)
+            {
+                StatusBarChangeBehaviour(false, "No Device Selected");
+#endif
             }
         }
 
@@ -191,7 +179,22 @@ namespace DDAGUI
 
         private void ChangeMemLocation_Click(object sender, RoutedEventArgs e)
         {
+            if (VMList.SelectedItem != null)
+            {
+                string vmName = VMList.SelectedItem.GetType().GetProperty("VMName").GetValue(VMList.SelectedItem, null).ToString();
 
+                ChangeMemorySpace changeMemorySpace = new ChangeMemorySpace(vmName);
+                (int lowMem, int highMem) = changeMemorySpace.ReturnValue();
+
+                if (lowMem != 0  && highMem != 0)
+                {
+                    MessageBox.Show($"Change memory space for {vmName} with LowMem {lowMem} and HighMem {highMem}", "Info", MessageBoxButton.OK, MessageBoxImage.Information);
+                }
+            }
+            else
+            {
+                MessageBox.Show("Please select a VM to add a device!", "Warning", MessageBoxButton.OK, MessageBoxImage.Warning);
+            }
         }
 
         private void HyperVServiceStatus_Click(object sender, RoutedEventArgs e)

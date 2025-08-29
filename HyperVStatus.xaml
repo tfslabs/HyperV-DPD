@@ -14,8 +14,8 @@
         <ListView x:Name="ListHVSrv" Margin="10,10,10,35" ScrollViewer.VerticalScrollBarVisibility="Hidden">
             <ListView.View>
                 <GridView>
-                    <GridViewColumn Header="Name" DisplayMemberBinding="{Binding ServiceName}" Width="260"/>
-                    <GridViewColumn Header="Status" DisplayMemberBinding="{Binding ServiceStatus}" Width="120"/>
+                    <GridViewColumn Header="Name" DisplayMemberBinding="{Binding ServiceName}" Width="270"/>
+                    <GridViewColumn Header="Status" DisplayMemberBinding="{Binding ServiceStatus}" Width="100"/>
                 </GridView>
             </ListView.View>
         </ListView>

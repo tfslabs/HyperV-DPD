@@ -1,0 +1,61 @@
+﻿<Window x:Class="DDAGUI.ChangeMemorySpace"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:DDAGUI"
+        mc:Ignorable="d"
+        Title="Change Memory Space"
+        SizeToContent="WidthAndHeight"
+        ResizeMode="NoResize"
+        Height="160" 
+        Width="420">
+    <Grid Width="400">
+        <Grid.RowDefinitions>
+            <RowDefinition/>
+            <RowDefinition/>
+            <RowDefinition/>
+            <RowDefinition/>
+        </Grid.RowDefinitions>
+        <Grid Grid.Row="0">
+            <Grid.Margin>
+                <Thickness Left="10" Right="10" Top="5" Bottom="5"></Thickness>
+            </Grid.Margin>
+            <TextBlock VerticalAlignment="Center">Change Low and High MMIO for Virtual Machine (in Megabytes)</TextBlock>
+        </Grid>
+        <Grid Grid.Row="1">
+            <Grid.Margin>
+                <Thickness Left="10" Right="10" Top="5" Bottom="5"></Thickness>
+            </Grid.Margin>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition MinWidth="50" Width="*"/>
+                <ColumnDefinition Width="4*"/>
+            </Grid.ColumnDefinitions>
+            <TextBlock Grid.Column="0" VerticalAlignment="Center" HorizontalAlignment="Left">Low Memory</TextBlock>
+            <TextBox x:Name="LowMemory_TextBox" Grid.Column="1" VerticalAlignment="Center" Margin="5,0,0,0"></TextBox>
+        </Grid>
+        <Grid Grid.Row="2">
+            <Grid.Margin>
+                <Thickness Left="10" Right="10" Top="5" Bottom="5"></Thickness>
+            </Grid.Margin>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition MinWidth="50" Width="*"/>
+                <ColumnDefinition Width="4*"/>
+            </Grid.ColumnDefinitions>
+            <TextBlock Grid.Column="0" VerticalAlignment="Center" HorizontalAlignment="Left">High Memory</TextBlock>
+            <TextBox x:Name="HighMemory_TextBox" Grid.Column="1" VerticalAlignment="Center" Margin="5,0,0,0"></TextBox>
+        </Grid>
+        <Grid Grid.Row="3">
+            <Grid.Margin>
+                <Thickness Left="10" Right="10" Top="5" Bottom="5"></Thickness>
+            </Grid.Margin>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition/>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="Auto"/>
+            </Grid.ColumnDefinitions>
+            <Button Grid.Column="1" MinWidth="30" Margin="5,0,5,0" Padding="4,1,4,1" VerticalAlignment="Center" Click="Confirm_Button">Confirm</Button>
+            <Button Grid.Column="2" MinWidth="30" Margin="5,0,5,0" Padding="4,1,4,1" VerticalAlignment="Center" Click="Cancel_Button">Cancel</Button>
+        </Grid>
+    </Grid>
+</Window>
