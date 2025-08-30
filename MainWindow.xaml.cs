@@ -186,7 +186,7 @@ namespace DDAGUI
                 ChangeMemorySpace changeMemorySpace = new ChangeMemorySpace(vmName);
                 (int lowMem, int highMem) = changeMemorySpace.ReturnValue();
 
-                if (lowMem != 0  && highMem != 0)
+                if (lowMem != 0 && highMem != 0)
                 {
                     MessageBox.Show($"Change memory space for {vmName} with LowMem {lowMem} and HighMem {highMem}", "Info", MessageBoxButton.OK, MessageBoxImage.Information);
                 }

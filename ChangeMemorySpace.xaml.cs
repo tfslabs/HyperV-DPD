@@ -50,7 +50,7 @@ namespace DDAGUI
         public (int, int) ReturnValue()
         {
             ShowDialog();
-            
+
             return memRange;
         }
     }
