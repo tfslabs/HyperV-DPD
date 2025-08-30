@@ -339,11 +339,12 @@ namespace DDAGUI
                     {
                         MessageBox.Show("Your Windows host is too old to use Hyper-V DDA. Please consider to upgrade!", "Warning", MessageBoxButton.OK, MessageBoxImage.Warning);
                     }
-
+#if !DEBUG
                     if (!osName.Trim().ToLower().Contains("server"))
                     {
                         MessageBox.Show("Your SKU of Windows may not support Hyper-V with DDA. Please use the SKU \"Server\".", "Warning", MessageBoxButton.OK, MessageBoxImage.Warning);
                     }
+#endif
                 }
             }
             catch (UnauthorizedAccessException ex)
