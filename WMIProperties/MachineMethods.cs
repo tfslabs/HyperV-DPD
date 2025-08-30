@@ -1,4 +1,6 @@
-﻿using System.Management;
+﻿using System;
+using System.Linq;
+using System.Management;
 using System.Security;
 
 namespace DDAGUI.WMIProperties
@@ -83,6 +85,48 @@ namespace DDAGUI.WMIProperties
         /*
          * Call WMI Method
          */
+        public string MountPnPDeviceToPcip(string deviceID)
+        {
+            string DismountedDeviceInstancePath = String.Empty;
 
+            ObjectQuery PnPQuery = new ObjectQuery($"SELECT DeviceId FROM Win32_PnPEntity WHERE DeviceID='{deviceID.Replace("\\", "\\\\")}'");
+            ObjectQuery AssignDevService = new ObjectQuery("SELECT * FROM Msvm_AssignableDeviceService WHERE CreationClassName='Msvm_AssignableDeviceService'");
+
+            Connect("root\\cimv2");
+            using (var searcher = new ManagementObjectSearcher(scope, PnPQuery))
+            {
+                foreach (ManagementObject manageObject in searcher.Get().Cast<ManagementObject>())
+                {
+                    try
+                    {
+                        _ = (UInt32)manageObject.InvokeMethod("Disable", new object[] { });
+                        break;
+                    }
+                    catch (IndexOutOfRangeException) { }
+                }
+            }
+
+            Connect("root\\virtualization\\v2");
+            using (var searcher = new ManagementObjectSearcher(scope, AssignDevService))
+            {
+                foreach (ManagementObject manageObject in searcher.Get().Cast<ManagementObject>())
+                {
+                    try
+                    {
+                        var dismountAssDev = manageObject.InvokeMethod("DismountAssignableDevice", new object[] { deviceID.Replace("\\", "\\\\") });
+
+                        if (dismountAssDev is ManagementBaseObject mbo && mbo["DismountedDeviceInstancePath"] != null)
+                        {
+                            DismountedDeviceInstancePath = mbo["DismountedDeviceInstancePath"].ToString();
+                        }
+
+                        break;
+                    }
+                    catch (IndexOutOfRangeException) { }
+                }
+            }
+
+            return DismountedDeviceInstancePath;
+        }
     }
 }

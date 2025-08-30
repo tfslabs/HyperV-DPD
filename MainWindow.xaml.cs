@@ -4,7 +4,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Management;
-using System.Runtime.InteropServices;
 using System.Security;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
@@ -65,7 +64,7 @@ namespace DDAGUI
             Application.Current.Shutdown();
         }
 
-        private void AddDevice_Click(object sender, RoutedEventArgs e)
+        private async void AddDevice_Click(object sender, RoutedEventArgs e)
         {
             if (VMList.SelectedItem != null)
             {
@@ -76,23 +75,28 @@ namespace DDAGUI
                     AddDevice addDevice = new AddDevice(machine);
 
                     string deviceId = addDevice.GetDeviceId();
-                    string vmName = VMList.SelectedItem.GetType().GetProperty("VMName").GetValue(VMList.SelectedItem, null).ToString();
 
-                    MessageBox.Show($"Add device {deviceId} into {vmName}", "Info", MessageBoxButton.OK, MessageBoxImage.Information);
+                    if (deviceId != null)
+                    {
+                        string vmName = VMList.SelectedItem.GetType().GetProperty("VMName").GetValue(VMList.SelectedItem, null).ToString();
 
-                    StatusBarChangeBehaviour(false, "Done");
+                        string deviceInstancePath = machine.MountPnPDeviceToPcip(deviceId);
+
+                        MessageBox.Show($"Mounted into {deviceInstancePath}", "Info", MessageBoxButton.OK, MessageBoxImage.Information);
+
+                        await RefreshVMs();
+
+                        StatusBarChangeBehaviour(false, "Done");
+                    }
+                    else
+                    {
+                        StatusBarChangeBehaviour(false, "No Device Added");
+                    }
                 }
-#if DEBUG
-                catch (NullReferenceException ex)
+                catch (Exception ex)
                 {
-
-                    MessageBox.Show(ex.Message, "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                    WMIDefaultValues.HandleException(ex, machine.GetComputerName());
                     StatusBarChangeBehaviour(false, "No Device Added");
-#else
-                catch (NullReferenceException)
-                {
-                    StatusBarChangeBehaviour(false, "No Device Added");
-#endif
                 }
             }
             else
@@ -110,41 +114,10 @@ namespace DDAGUI
 
                 MessageBox.Show($"Remove device {deviceId} from {vmName}", "Info", MessageBoxButton.OK, MessageBoxImage.Information);
             }
-            catch (UnauthorizedAccessException ex)
+            catch (Exception ex)
             {
-#if DEBUG
-                MessageBox.Show(ex.ToString(), "Error", MessageBoxButton.OK, MessageBoxImage.Error);
-#else
-                MessageBox.Show($"Failed to catch the Authenticate with {machine.GetComputerName()}: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
-#endif
-            }
-            catch (COMException ex)
-            {
-#if DEBUG
-                MessageBox.Show(ex.ToString(), "Error", MessageBoxButton.OK, MessageBoxImage.Error);
-#else
-                MessageBox.Show($"Failed to reach {machine.GetComputerName()}: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
-#endif
-            }
-            catch (ManagementException ex)
-            {
-#if DEBUG
-                MessageBox.Show(ex.ToString(), "Error", MessageBoxButton.OK, MessageBoxImage.Error);
-#else
-                MessageBox.Show($"Failed to catch the Management Method: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
-#endif
-            }
-#if DEBUG
-            catch (NullReferenceException ex)
-            {
-
-                MessageBox.Show(ex.Message, "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                WMIDefaultValues.HandleException(ex, machine.GetComputerName());
                 StatusBarChangeBehaviour(false, "No Device Selected");
-#else
-            catch (NullReferenceException)
-            {
-                StatusBarChangeBehaviour(false, "No Device Selected");
-#endif
             }
         }
 
@@ -158,17 +131,10 @@ namespace DDAGUI
                     Clipboard.SetText(deviceId);
                     MessageBox.Show($"Copied device ID {deviceId} into clipboard", "Info", MessageBoxButton.OK, MessageBoxImage.Information);
                 }
-#if DEBUG
-                catch (NullReferenceException ex)
+                catch (Exception ex)
                 {
-
-                    MessageBox.Show(ex.Message, "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                    WMIDefaultValues.HandleException(ex, machine.GetComputerName());
                     StatusBarChangeBehaviour(false, "No Device Selected");
-#else
-                catch (NullReferenceException)
-                {
-                    StatusBarChangeBehaviour(false, "No Device Selected");
-#endif
                 }
             }
             else
@@ -181,14 +147,21 @@ namespace DDAGUI
         {
             if (VMList.SelectedItem != null)
             {
-                string vmName = VMList.SelectedItem.GetType().GetProperty("VMName").GetValue(VMList.SelectedItem, null).ToString();
-
-                ChangeMemorySpace changeMemorySpace = new ChangeMemorySpace(vmName);
-                (int lowMem, int highMem) = changeMemorySpace.ReturnValue();
-
-                if (lowMem != 0 && highMem != 0)
+                try
                 {
-                    MessageBox.Show($"Change memory space for {vmName} with LowMem {lowMem} and HighMem {highMem}", "Info", MessageBoxButton.OK, MessageBoxImage.Information);
+                    string vmName = VMList.SelectedItem.GetType().GetProperty("VMName").GetValue(VMList.SelectedItem, null).ToString();
+
+                    ChangeMemorySpace changeMemorySpace = new ChangeMemorySpace(vmName);
+                    (int lowMem, int highMem) = changeMemorySpace.ReturnValue();
+
+                    if (lowMem != 0 && highMem != 0)
+                    {
+                        MessageBox.Show($"Change memory space for {vmName} with LowMem {lowMem} and HighMem {highMem}", "Info", MessageBoxButton.OK, MessageBoxImage.Information);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    WMIDefaultValues.HandleException(ex, machine.GetComputerName());
                 }
             }
             else
@@ -253,29 +226,9 @@ namespace DDAGUI
 
                     }
                 }
-                catch (UnauthorizedAccessException ex)
+                catch (Exception ex)
                 {
-#if DEBUG
-                    MessageBox.Show(ex.ToString(), "Error", MessageBoxButton.OK, MessageBoxImage.Error);
-#else
-                    MessageBox.Show($"Failed to catch the Authenticate with {machine.GetComputerName()}: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
-#endif
-                }
-                catch (COMException ex)
-                {
-#if DEBUG
-                    MessageBox.Show(ex.ToString(), "Error", MessageBoxButton.OK, MessageBoxImage.Error);
-#else
-                    MessageBox.Show($"Failed to reach {machine.GetComputerName()}: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
-#endif
-                }
-                catch (ManagementException ex)
-                {
-#if DEBUG
-                    MessageBox.Show(ex.ToString(), "Error", MessageBoxButton.OK, MessageBoxImage.Error);
-#else
-                    MessageBox.Show($"Failed to catch the Management Method: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
-#endif
+                    WMIDefaultValues.HandleException(ex, machine.GetComputerName());
                 }
             }
             else
@@ -347,29 +300,9 @@ namespace DDAGUI
 #endif
                 }
             }
-            catch (UnauthorizedAccessException ex)
+            catch (Exception ex)
             {
-#if DEBUG
-                MessageBox.Show(ex.ToString(), "Error", MessageBoxButton.OK, MessageBoxImage.Error);
-#else
-                MessageBox.Show($"Failed to catch the Authenticate with {machine.GetComputerName()}: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
-#endif
-            }
-            catch (COMException ex)
-            {
-#if DEBUG
-                MessageBox.Show(ex.ToString(), "Error", MessageBoxButton.OK, MessageBoxImage.Error);
-#else
-                MessageBox.Show($"Failed to reach {machine.GetComputerName()}: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
-#endif
-            }
-            catch (ManagementException ex)
-            {
-#if DEBUG
-                MessageBox.Show(ex.ToString(), "Error", MessageBoxButton.OK, MessageBoxImage.Error);
-#else
-                MessageBox.Show($"Failed to catch the Management Method: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
-#endif
+                WMIDefaultValues.HandleException(ex, machine.GetComputerName());
             }
 
             await RefreshVMs();
@@ -425,29 +358,9 @@ namespace DDAGUI
                     }
                 });
             }
-            catch (UnauthorizedAccessException ex)
+            catch (Exception ex)
             {
-#if DEBUG
-                MessageBox.Show(ex.ToString(), "Error", MessageBoxButton.OK, MessageBoxImage.Error);
-#else
-                MessageBox.Show($"Failed to catch the Authenticate with {machine.GetComputerName()}: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
-#endif
-            }
-            catch (COMException ex)
-            {
-#if DEBUG
-                MessageBox.Show(ex.ToString(), "Error", MessageBoxButton.OK, MessageBoxImage.Error);
-#else
-                MessageBox.Show($"Failed to reach {machine.GetComputerName()}: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
-#endif
-            }
-            catch (ManagementException ex)
-            {
-#if DEBUG
-                MessageBox.Show(ex.ToString(), "Error", MessageBoxButton.OK, MessageBoxImage.Error);
-#else
-                MessageBox.Show($"Failed to catch the Management Method: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
-#endif
+                WMIDefaultValues.HandleException(ex, machine.GetComputerName());
             }
         }
 

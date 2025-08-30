@@ -1,8 +1,6 @@
 ﻿using DDAGUI.WMIProperties;
 using System;
 using System.Collections.Generic;
-using System.Management;
-using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using System.Windows;
 
@@ -15,7 +13,7 @@ namespace DDAGUI
         public CheckForAssignableDevice(MachineMethods machine)
         {
             this.machine = machine;
-            
+
             InitializeComponent();
         }
 
@@ -27,7 +25,7 @@ namespace DDAGUI
             await CheckDevices();
         }
 
-        private void Cancel_Button(object sender, RoutedEventArgs e) 
+        private void Cancel_Button(object sender, RoutedEventArgs e)
         {
             Close();
         }
@@ -42,7 +40,8 @@ namespace DDAGUI
 
             try
             {
-                await Task.Run(() => {
+                await Task.Run(() =>
+                {
                     machine.Connect("root\\cimv2");
 
                     foreach (var device in machine.GetObjects("Win32_PnPEntity", "DeviceID, Caption, Status"))
@@ -93,7 +92,7 @@ namespace DDAGUI
                             {
                                 foreach (var deviceMem in machine.GetObjects("Win32_DeviceMemoryAddress", "StartingAddress, EndingAddress"))
                                 {
-                                    if(startingAddresses.Contains(deviceMem["StartingAddress"].ToString()))
+                                    if (startingAddresses.Contains(deviceMem["StartingAddress"].ToString()))
                                     {
                                         double startingRange = Double.Parse(deviceMem["StartingAddress"].ToString());
                                         double endingRange = Double.Parse(deviceMem["EndingAddress"].ToString());
@@ -116,29 +115,9 @@ namespace DDAGUI
                     }
                 });
             }
-            catch (UnauthorizedAccessException ex)
+            catch (Exception ex)
             {
-#if DEBUG
-                MessageBox.Show(ex.ToString(), "Error", MessageBoxButton.OK, MessageBoxImage.Error);
-#else
-                MessageBox.Show($"Failed to catch the Authenticate with {machine.GetComputerName()}: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
-#endif
-            }
-            catch (COMException ex)
-            {
-#if DEBUG
-                MessageBox.Show(ex.ToString(), "Error", MessageBoxButton.OK, MessageBoxImage.Error);
-#else
-                MessageBox.Show($"Failed to reach {machine.GetComputerName()}: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
-#endif
-            }
-            catch (ManagementException ex)
-            {
-#if DEBUG
-                MessageBox.Show(ex.ToString(), "Error", MessageBoxButton.OK, MessageBoxImage.Error);
-#else
-                MessageBox.Show($"Failed to catch the Management Method: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
-#endif
+                WMIDefaultValues.HandleException(ex, machine.GetComputerName());
             }
         }
     }

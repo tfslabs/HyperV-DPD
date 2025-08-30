@@ -1,9 +1,13 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
+using System.Windows;
 
 namespace DDAGUI.WMIProperties
 {
     public static class WMIDefaultValues
     {
+        public static string notAvailable = "N/A";
+
         public static readonly Dictionary<int, string> vmStatusMap = new Dictionary<int, string>
         {
             {0,  "Unknown" },
@@ -35,6 +39,35 @@ namespace DDAGUI.WMIProperties
             "vmicvss"
         };
 
-        public static string notAvailable = "N/A";
+        public static void HandleException(Exception ex, string machineName)
+        {
+#if DEBUG
+            MessageBox.Show(ex.ToString(), $"Error on {machineName}", MessageBoxButton.OK, MessageBoxImage.Error);
+#else
+            string message = String.Empty;
+            if (ex is UnauthorizedAccessException)
+            {
+                message = $"Failed to catch the Authenticate with {machineName}: {ex.Message}";
+            }
+            else if (ex is COMException)
+            {
+                message = $"Failed to reach {machineName}: {ex.Message}";
+            }
+            else if (ex is ManagementException)
+            {
+                message = $"Failed to catch the Management Method: {ex.Message}";
+            }
+            else if (ex is NullReferenceException)
+            {
+                message = "No Device Selected";
+            }
+            else
+            {
+                message = ex.Message;
+            }
+
+            MessageBox.Show(message, "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+#endif  
+        }
     }
 }

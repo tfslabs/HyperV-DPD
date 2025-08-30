@@ -1,7 +1,5 @@
 ﻿using DDAGUI.WMIProperties;
 using System;
-using System.Management;
-using System.Runtime.InteropServices;
 using System.Windows;
 
 namespace DDAGUI
@@ -51,29 +49,9 @@ namespace DDAGUI
                     });
                 }
             }
-            catch (UnauthorizedAccessException ex)
+            catch (Exception ex)
             {
-#if DEBUG
-                MessageBox.Show(ex.ToString(), "Error", MessageBoxButton.OK, MessageBoxImage.Error);
-#else
-                MessageBox.Show($"Failed to catch the Authenticate with {machine.GetComputerName()}: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
-#endif
-            }
-            catch (COMException ex)
-            {
-#if DEBUG
-                MessageBox.Show(ex.ToString(), "Error", MessageBoxButton.OK, MessageBoxImage.Error);
-#else
-                MessageBox.Show($"Failed to reach {machine.GetComputerName()}: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
-#endif
-            }
-            catch (ManagementException ex)
-            {
-#if DEBUG
-                MessageBox.Show(ex.ToString(), "Error", MessageBoxButton.OK, MessageBoxImage.Error);
-#else
-                MessageBox.Show($"Failed to catch the Management Method: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
-#endif
+                WMIDefaultValues.HandleException(ex, machine.GetComputerName());
             }
         }
     }
