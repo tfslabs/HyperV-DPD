@@ -113,6 +113,9 @@
     <Compile Include="ChangeMemorySpace.xaml.cs">
       <DependentUpon>ChangeMemorySpace.xaml</DependentUpon>
     </Compile>
+    <Compile Include="CheckForAssignableDevice.xaml.cs">
+      <DependentUpon>CheckForAssignableDevice.xaml</DependentUpon>
+    </Compile>
     <Compile Include="ConnectForm.xaml.cs">
       <DependentUpon>ConnectForm.xaml</DependentUpon>
     </Compile>
@@ -128,6 +131,10 @@
     <Compile Include="WMIProperties\MachineMethods.cs" />
     <Compile Include="WMIProperties\WMIDefaultValues.cs" />
     <Page Include="ChangeMemorySpace.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="CheckForAssignableDevice.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

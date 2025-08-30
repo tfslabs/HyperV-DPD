@@ -205,7 +205,8 @@ namespace DDAGUI
 
         private void AssignableDevice_Click(object sender, RoutedEventArgs e)
         {
-
+            CheckForAssignableDevice device = new CheckForAssignableDevice(machine);
+            device.ShowDialog();
         }
 
         private void RemAllDevice_Click(object sender, RoutedEventArgs e)

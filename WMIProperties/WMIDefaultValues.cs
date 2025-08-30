@@ -34,5 +34,7 @@ namespace DDAGUI.WMIProperties
             "vmms",
             "vmicvss"
         };
+
+        public static string notAvailable = "N/A";
     }
 }

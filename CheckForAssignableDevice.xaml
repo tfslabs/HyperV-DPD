@@ -12,7 +12,7 @@
         Width="600">
     <Grid>
         <Grid.RowDefinitions>
-            <RowDefinition Height="9*"/>
+            <RowDefinition Height="9*" MinHeight="100" MaxHeight="400"/>
             <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
         <Grid.Margin>
@@ -22,13 +22,13 @@
             <Grid.Margin>
                 <Thickness Left="10" Right="10"/>
             </Grid.Margin>
-            <ListView x:Name="AssignableDevice_ListView" Grid.Row="1">
+            <ListView x:Name="AssignableDevice_ListView">
                 <ListView.View>
                     <GridView>
                         <GridViewColumn Header="Device Instance Path" DisplayMemberBinding="{Binding DeviceId}" Width="200"/>
                         <GridViewColumn Header="Device Name" DisplayMemberBinding="{Binding DeviceName}" Width="170"/>
-                        <GridViewColumn Header="Memory Gap" DisplayMemberBinding="{Binding DeviceGap}" Width="100"/>
-                        <GridViewColumn Header="Note" DisplayMemberBinding="{Binding DeviceNote}" Width="100"/>
+                        <GridViewColumn Header="Memory Gap" DisplayMemberBinding="{Binding DeviceGap}" Width="80"/>
+                        <GridViewColumn Header="Note" DisplayMemberBinding="{Binding DeviceNote}" Width="120"/>
                     </GridView>
                 </ListView.View>
             </ListView>
