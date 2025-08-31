@@ -80,9 +80,7 @@ namespace DDAGUI
                     {
                         string vmName = VMList.SelectedItem.GetType().GetProperty("VMName").GetValue(VMList.SelectedItem, null).ToString();
 
-                        string deviceInstancePath = machine.MountPnPDeviceToPcip(deviceId);
-
-                        MessageBox.Show($"Mounted into {deviceInstancePath}", "Info", MessageBoxButton.OK, MessageBoxImage.Information);
+                        machine.MountPnPDeviceToPcip(deviceId);
 
                         await RefreshVMs();
 

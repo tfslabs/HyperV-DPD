@@ -85,48 +85,68 @@ namespace DDAGUI.WMIProperties
         /*
          * Call WMI Method
          */
-        public string MountPnPDeviceToPcip(string deviceID)
+        public void MountPnPDeviceToPcip(string deviceID)
         {
-            string DismountedDeviceInstancePath = String.Empty;
-
-            ObjectQuery PnPQuery = new ObjectQuery($"SELECT DeviceId FROM Win32_PnPEntity WHERE DeviceID='{deviceID.Replace("\\", "\\\\")}'");
-            ObjectQuery AssignDevService = new ObjectQuery("SELECT * FROM Msvm_AssignableDeviceService WHERE CreationClassName='Msvm_AssignableDeviceService'");
-
+            UInt32 outObj = (UInt32)32779;
             Connect("root\\cimv2");
-            using (var searcher = new ManagementObjectSearcher(scope, PnPQuery))
+            foreach (ManagementObject deviceSearcher in GetObjects("Win32_PnPEntity", "DeviceId").Cast<ManagementObject>())
             {
-                foreach (ManagementObject manageObject in searcher.Get().Cast<ManagementObject>())
+                if (deviceSearcher["DeviceId"].ToString().Equals(deviceID))
                 {
                     try
                     {
-                        _ = (UInt32)manageObject.InvokeMethod("Disable", new object[] { });
-                        break;
+                        _ = (UInt32)deviceSearcher.InvokeMethod("Disable", new object[] { });
                     }
                     catch (IndexOutOfRangeException) { }
+                    break;
                 }
             }
 
             Connect("root\\virtualization\\v2");
-            using (var searcher = new ManagementObjectSearcher(scope, AssignDevService))
+            ManagementObject setting = (new ManagementClass(scope, new ManagementPath("Msvm_AssignableDeviceDismountSettingData"), null)).CreateInstance();
+
+            setting["DeviceInstancePath"] = deviceID;
+            setting["DeviceLocationPath"] = string.Empty;
+            setting["RequireAcsSupport"] = false;
+            setting["RequireDeviceMitigations"] = false;
+
+            foreach (ManagementObject svc in GetObjects("Msvm_AssignableDeviceService", "*").Cast<ManagementObject>())
             {
-                foreach (ManagementObject manageObject in searcher.Get().Cast<ManagementObject>())
-                {
-                    try
-                    {
-                        var dismountAssDev = manageObject.InvokeMethod("DismountAssignableDevice", new object[] { deviceID.Replace("\\", "\\\\") });
-
-                        if (dismountAssDev is ManagementBaseObject mbo && mbo["DismountedDeviceInstancePath"] != null)
-                        {
-                            DismountedDeviceInstancePath = mbo["DismountedDeviceInstancePath"].ToString();
-                        }
-
-                        break;
-                    }
-                    catch (IndexOutOfRangeException) { }
-                }
+                outObj = (UInt32)svc.InvokeMethod("DismountAssignableDevice", new object[] { setting.GetText(TextFormat.WmiDtd20) });
+                break;
             }
 
-            return DismountedDeviceInstancePath;
+            switch (outObj)
+            {
+                case (UInt32)0:
+                    break;
+                case (UInt32)4096:
+                    throw new ManagementException("MountPnPDeviceToPcip: Method Parameters Checked - Job Started");
+                case (UInt32)32768:
+                    throw new ManagementException("MountPnPDeviceToPcip: Access Denied");
+                case (UInt32)32770:
+                    throw new ManagementException("MountPnPDeviceToPcip: Not Supported");
+                case (UInt32)32771:
+                    throw new ManagementException("MountPnPDeviceToPcip: Status is unknown");
+                case (UInt32)32772:
+                    throw new ManagementException("MountPnPDeviceToPcip: Timeout");
+                case (UInt32)32773:
+                    throw new ManagementException("MountPnPDeviceToPcip: Invalid parameter");
+                case (UInt32)32774:
+                    throw new ManagementException("MountPnPDeviceToPcip: System is in use");
+                case (UInt32)32775:
+                    throw new ManagementException("MountPnPDeviceToPcip: Invalid state for this operation");
+                case (UInt32)32776:
+                    throw new ManagementException("MountPnPDeviceToPcip: Incorrect data type");
+                case (UInt32)32777:
+                    throw new ManagementException("MountPnPDeviceToPcip: System is not available");
+                case (UInt32)32778:
+                    throw new ManagementException("MountPnPDeviceToPcip: Out of memory");
+                case (UInt32)32779:
+                    throw new ManagementException("MountPnPDeviceToPcip: File not found");
+                default:
+                    throw new ManagementException("Unknow error in method MountPnPDeviceToPcip");
+            }
         }
     }
 }

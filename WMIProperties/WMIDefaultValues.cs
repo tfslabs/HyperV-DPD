@@ -59,7 +59,7 @@ namespace DDAGUI.WMIProperties
             }
             else if (ex is NullReferenceException)
             {
-                message = "No Device Selected";
+                message = "No input was made";
             }
             else
             {
@@ -67,7 +67,7 @@ namespace DDAGUI.WMIProperties
             }
 
             MessageBox.Show(message, "Error", MessageBoxButton.OK, MessageBoxImage.Error);
-#endif  
+#endif
         }
     }
 }
