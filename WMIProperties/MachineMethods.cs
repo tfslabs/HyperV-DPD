@@ -88,6 +88,7 @@ namespace DDAGUI.WMIProperties
         public void MountPnPDeviceToPcip(string deviceID)
         {
             UInt32 outObj = (UInt32)32779;
+
             Connect("root\\cimv2");
             foreach (ManagementObject deviceSearcher in GetObjects("Win32_PnPEntity", "DeviceId").Cast<ManagementObject>())
             {
@@ -146,6 +147,103 @@ namespace DDAGUI.WMIProperties
                     throw new ManagementException("MountPnPDeviceToPcip: File not found");
                 default:
                     throw new ManagementException("Unknow error in method MountPnPDeviceToPcip");
+            }
+        }
+
+        public void MountIntoVM(string deviceId, string vmName)
+        {
+            Connect("root\\virtualization\\v2");
+
+            ManagementObject vmCurrentSetting = null;
+            ManagementObject setting = (new ManagementClass(scope, new ManagementPath("Msvm_PciExpressSettingData"), null)).CreateInstance();
+            string hostRes = string.Empty, vmRes = string.Empty;
+
+            foreach (ManagementObject device in GetObjects("Msvm_PciExpress", "*").Cast<ManagementObject>())
+            {
+                if (device["DeviceInstancePath"].ToString().Contains(deviceId.Replace("PCI\\", "PCIP\\")))
+                {
+                    string hostName = device["SystemName"].ToString();
+                    string deviceIdPnP = device["DeviceId"].ToString().Replace("\\", "\\\\");
+                    hostRes = $"\\\\{hostName}\\root\\virtualization\\v2:Msvm_PciExpress.CreationClassName=\"Msvm_PciExpress\",DeviceID=\"{deviceIdPnP}\",SystemCreationClassName=\"Msvm_ComputerSystem\",SystemName=\"{hostName}\"";
+                    break;
+                }
+            }
+            if (hostRes == String.Empty) throw new ManagementException("MountIntoVM: Unable to get HostResource");
+
+            foreach (ManagementObject vmSetting in GetObjects("Msvm_VirtualSystemSettingData", "*").Cast<ManagementObject>())
+            {
+                if (vmSetting["Caption"].ToString().Equals("Virtual Machine Settings") && !vmSetting["InstanceID"].ToString().Equals("Microsoft:Definition\\VirtualSystem\\Default"))
+                {
+                    string hostName = vmSetting["ElementName"]?.ToString();
+
+                    if (hostName == null || hostName.Length == 0) continue;
+
+                    if (hostName.Equals(vmName))
+                    {
+                        vmRes = $"{vmSetting["InstanceID"]}\\{Guid.NewGuid().ToString().ToUpper()}";
+                        vmCurrentSetting = vmSetting;
+                        break;
+                    }
+
+                }
+            }
+            if (vmRes == String.Empty) throw new ManagementException("MountIntoVM: Unable to generate InstanceID");
+            if (vmCurrentSetting == null) throw new ManagementException("MountIntoVM: Unable to get setting for VM");
+
+            setting["Address"] = String.Empty;
+            setting["AddressOnParent"] = String.Empty;
+            setting["AllocationUnits"] = "count";
+            setting["AllowDirectTranslatedP2P"] = new bool[] { false };
+            setting["AutomaticAllocation"] = true;
+            setting["AutomaticDeallocation"] = true;
+            setting["Caption"] = "PCI Express Port";
+            setting["Connection"] = null;
+            setting["ConsumerVisibility"] = (UInt16)3;
+            setting["Description"] = "Microsoft Virtual PCI Express Port Setting Data";
+            setting["ElementName"] = "PCI Express Port";
+            setting["HostResource"] = new string[] { hostRes };
+            setting["InstanceID"] = vmRes;
+            setting["Limit"] = (UInt64)1;
+            setting["MappingBehavior"] = null;
+            setting["OtherResourceType"] = null;
+            setting["Parent"] = null;
+            setting["PoolID"] = String.Empty;
+            setting["Reservation"] = (UInt64)1;
+            setting["ResourceSubType"] = "Microsoft:Hyper-V:Virtual Pci Express Port";
+            setting["ResourceType"] = (UInt16)32769;
+            setting["TargetVtl"] = (uint)0;
+            setting["VirtualFunctions"] = new UInt16[] { 0 };
+            setting["VirtualQuantity"] = (UInt64)1;
+            setting["VirtualSystemIdentifiers"] = new string[] { "{" + Guid.NewGuid() + "}" };
+            setting["VirtualQuantityUnits"] = "count";
+            setting["Weight"] = (UInt32)0;
+
+            ManagementObject srv = new ManagementClass(scope, new ManagementPath("Msvm_VirtualSystemManagementService"), null).GetInstances().Cast<ManagementObject>().FirstOrDefault() ?? throw new ManagementException("MountIntoVM: Assignment service is either not running or crashed");
+
+            UInt32 outParams = (UInt32)srv.InvokeMethod("AddResourceSettings", new object[]
+            {
+                vmCurrentSetting,
+                new string[] { setting.GetText(TextFormat.WmiDtd20) }
+            });
+
+            switch (outParams)
+            {
+                case (UInt32)0:
+                    break;
+                case (UInt32)1:
+                    throw new ManagementException("MountIntoVM: Not Supported");
+                case (UInt32)2:
+                    throw new ManagementException("MountIntoVM: Failed");
+                case (UInt32)3:
+                    throw new ManagementException("MountIntoVM: Timed out");
+                case (UInt32)4:
+                    throw new ManagementException("MountIntoVM: Invalid Parameter");
+                case (UInt32)4096:
+                    throw new ManagementException("MountIntoVM: Method Parameters Checked - Job Started");
+                case (UInt32)4097:
+                    throw new ManagementException("MountIntoVM: The function may not be called or is reserved for vendor");
+                default:
+                    throw new ManagementException("MountIntoVM: Unknown error");
             }
         }
     }

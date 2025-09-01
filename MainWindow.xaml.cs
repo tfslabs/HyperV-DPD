@@ -81,6 +81,7 @@ namespace DDAGUI
                         string vmName = VMList.SelectedItem.GetType().GetProperty("VMName").GetValue(VMList.SelectedItem, null).ToString();
 
                         machine.MountPnPDeviceToPcip(deviceId);
+                        machine.MountIntoVM(deviceId, vmName);
 
                         await RefreshVMs();
 
