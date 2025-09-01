@@ -83,7 +83,8 @@
                 <ListView x:Name="DevicePerVMList" Grid.Row="1">
                     <ListView.View>
                         <GridView>
-                            <GridViewColumn Header="Device Instance ID" DisplayMemberBinding="{Binding DeviceID}" Width="370"/>
+                            <GridViewColumn Header="Device Instance ID" DisplayMemberBinding="{Binding DeviceID}" Width="170"/>
+                            <GridViewColumn Header="Device Instance Path" DisplayMemberBinding="{Binding DevicePath}" Width="200"/>
                         </GridView>
                     </ListView.View>
                 </ListView>

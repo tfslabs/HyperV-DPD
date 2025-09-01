@@ -17,7 +17,16 @@ namespace DDAGUI
          *  Global properties
          */
         private MachineMethods machine;
-        private readonly Dictionary<string, (string vmName, string vmStatus, List<string> devices)> vmObjects;
+
+        /*
+         * The vmObjects is designe for this following params
+         * string - vmId (GUIDv4)
+         * vmName
+         * vmStatus
+         * devices <InstanceID, DeviceInstancePath>
+         */
+
+        private readonly Dictionary<string, (string vmName, string vmStatus, List<(string instanceId, string devInstancePath)> devices)> vmObjects;
 
         public MainWindow()
         {
@@ -26,7 +35,7 @@ namespace DDAGUI
             StatusBarChangeBehaviour(true);
 
             machine = new MachineMethods();
-            vmObjects = new Dictionary<string, (string vmName, string vmStatus, List<string> devices)>();
+            vmObjects = new Dictionary<string, (string vmName, string vmStatus, List<(string instanceId, string devInstancePath)> devices)>();
 
             Loaded += MainWindow_Loaded;
 
@@ -84,7 +93,6 @@ namespace DDAGUI
                         machine.MountIntoVM(deviceId, vmName);
 
                         await RefreshVMs();
-
                         StatusBarChangeBehaviour(false, "Done");
                     }
                     else
@@ -104,14 +112,25 @@ namespace DDAGUI
             }
         }
 
-        private void RemDevice_Click(object sender, RoutedEventArgs e)
+        private async void RemDevice_Click(object sender, RoutedEventArgs e)
         {
             try
             {
-                string vmName = VMList.SelectedItem.GetType().GetProperty("VMName").GetValue(VMList.SelectedItem, null).ToString();
-                string deviceId = DevicePerVMList.SelectedItem.GetType().GetProperty("DeviceID").GetValue(DevicePerVMList.SelectedItem, null).ToString();
+                if (VMList.SelectedItem != null && DevicePerVMList.SelectedItem != null)
+                {
+                    string deviceId = DevicePerVMList.SelectedItem.GetType().GetProperty("DeviceID").GetValue(DevicePerVMList.SelectedItem, null).ToString();
+                    string devicePath = DevicePerVMList.SelectedItem.GetType().GetProperty("DevicePath").GetValue(DevicePerVMList.SelectedItem, null).ToString();
 
-                MessageBox.Show($"Remove device {deviceId} from {vmName}", "Info", MessageBoxButton.OK, MessageBoxImage.Information);
+                    machine.DismountFromVM(deviceId);
+                    machine.DismountPnPDeviceFromPcip(devicePath);
+
+                    await RefreshVMs();
+                    StatusBarChangeBehaviour(false, "Done");
+                }
+                else
+                {
+                    MessageBox.Show("Please select a device from the VM List!", "Warning", MessageBoxButton.OK, MessageBoxImage.Warning);
+                }
             }
             catch (Exception ex)
             {
@@ -248,13 +267,14 @@ namespace DDAGUI
                     {
                         if (vmObject.Key.Equals(vmId))
                         {
-                            foreach (string deviceInstanceid in vmObject.Value.devices)
+                            foreach (var deviceInstanceid in vmObject.Value.devices)
                             {
                                 Dispatcher.Invoke(() =>
                                 {
                                     DevicePerVMList.Items.Add(new
                                     {
-                                        DeviceID = deviceInstanceid
+                                        DeviceID = deviceInstanceid.instanceId,
+                                        DevicePath = deviceInstanceid.devInstancePath
                                     });
                                 });
                             }
@@ -324,7 +344,7 @@ namespace DDAGUI
                         {
                             string vmName = vmInfo["ElementName"].ToString();
                             string vmStatus = WMIDefaultValues.vmStatusMap[int.Parse(vmInfo["EnabledState"]?.ToString() ?? "0")];
-                            vmObjects[vmInfo["Name"].ToString()] = (vmName, vmStatus, new List<string>());
+                            vmObjects[vmInfo["Name"].ToString()] = (vmName, vmStatus, new List<(string instanceId, string devInstancePath)>());
                         }
                     }
 
@@ -332,13 +352,15 @@ namespace DDAGUI
                     {
                         if (deviceid["Caption"].ToString().Equals("PCI Express Port"))
                         {
-                            string hostResources = ((string[])deviceid["HostResource"])[0];
-                            string[] payload = deviceid["InstanceID"].ToString().Replace("Microsoft:", "").Split('\\');
+                            string instanceId = deviceid["InstanceID"].ToString();
 
+                            string hostResources = ((string[])deviceid["HostResource"])[0];
+                            string[] payload = instanceId.Replace("Microsoft:", "").Split('\\');
+                            
                             if (vmObjects.ContainsKey(payload[0]))
                             {
-                                string key = Regex.Replace(((string[])hostResources.Split(','))[1], "DeviceID=\"Microsoft:[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-4[0-9a-fA-F]{3}-[89aAbB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}\\\\\\\\", "").Replace("\"", "").Replace("\\\\", "\\");
-                                vmObjects[payload[0]].devices.Add(key);
+                                string devPath = Regex.Replace(((string[])hostResources.Split(','))[1], "DeviceID=\"Microsoft:[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-4[0-9a-fA-F]{3}-[89aAbB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}\\\\\\\\", "").Replace("\"", "").Replace("\\\\", "\\");
+                                vmObjects[payload[0]].devices.Add((instanceId, devPath));
                             }
                         }
                     }
