@@ -17,15 +17,6 @@ namespace DDAGUI
          *  Global properties
          */
         private MachineMethods machine;
-
-        /*
-         * The vmObjects is designe for this following params
-         * string - vmId (GUIDv4)
-         * vmName
-         * vmStatus
-         * devices <InstanceID, DeviceInstancePath>
-         */
-
         private readonly Dictionary<string, (string vmName, string vmStatus, List<(string instanceId, string devInstancePath)> devices)> vmObjects;
 
         public MainWindow()
@@ -90,7 +81,7 @@ namespace DDAGUI
                         string vmName = VMList.SelectedItem.GetType().GetProperty("VMName").GetValue(VMList.SelectedItem, null).ToString();
 
                         machine.MountPnPDeviceToPcip(deviceId);
-                        machine.MountIntoVM(deviceId, vmName);
+                        machine.MountIntoVM(vmName, deviceId);
 
                         await RefreshVMs();
                         StatusBarChangeBehaviour(false, "Done");
@@ -174,7 +165,8 @@ namespace DDAGUI
 
                     if (lowMem != 0 && highMem != 0)
                     {
-                        MessageBox.Show($"Change memory space for {vmName} with LowMem {lowMem} and HighMem {highMem}", "Info", MessageBoxButton.OK, MessageBoxImage.Information);
+                        //MessageBox.Show($"Change memory space for {vmName} with LowMem {lowMem} and HighMem {highMem}", "Info", MessageBoxButton.OK, MessageBoxImage.Information);
+                        machine.ChangeMemAllocate(vmName, lowMem, highMem);
                     }
                 }
                 catch (Exception ex)
@@ -233,15 +225,13 @@ namespace DDAGUI
 
                     if (isEnableMemCache == MessageBoxResult.Yes)
                     {
-
+                        machine.ChangeGuestCacheType(vmName, true);
+                        MessageBox.Show($"Enabled guest control cache type successfully for {vmName}", "Info", MessageBoxButton.OK, MessageBoxImage.Information);
                     }
                     else if (isEnableMemCache == MessageBoxResult.No)
                     {
-
-                    }
-                    else
-                    {
-
+                        machine.ChangeGuestCacheType(vmName, false);
+                        MessageBox.Show($"Disabled guest control cache type successfully for {vmName}", "Info", MessageBoxButton.OK, MessageBoxImage.Information);
                     }
                 }
                 catch (Exception ex)
@@ -356,7 +346,7 @@ namespace DDAGUI
 
                             string hostResources = ((string[])deviceid["HostResource"])[0];
                             string[] payload = instanceId.Replace("Microsoft:", "").Split('\\');
-                            
+
                             if (vmObjects.ContainsKey(payload[0]))
                             {
                                 string devPath = Regex.Replace(((string[])hostResources.Split(','))[1], "DeviceID=\"Microsoft:[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-4[0-9a-fA-F]{3}-[89aAbB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}\\\\\\\\", "").Replace("\"", "").Replace("\\\\", "\\");

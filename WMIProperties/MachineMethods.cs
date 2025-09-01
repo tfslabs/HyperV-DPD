@@ -86,6 +86,115 @@ namespace DDAGUI.WMIProperties
         /*
          * Call WMI Method
          */
+        public void ChangeGuestCacheType(string vmName, bool isEnableGuestControlCache)
+        {
+            Connect("root\\virtualization\\v2");
+
+            ManagementObject vm = null;
+
+            foreach (ManagementObject obj in GetObjects("Msvm_VirtualSystemSettingData", "*").Cast<ManagementObject>())
+            {
+                if (obj["Caption"].ToString().Equals("Virtual Machine Settings") && !obj["InstanceID"].ToString().Contains("Microsoft:Definition"))
+                {
+                    string hostName = obj["ElementName"]?.ToString();
+
+                    if (hostName == null || hostName.Length == 0) continue;
+
+                    if (hostName.Equals(vmName))
+                    {
+                        vm = obj;
+                    }
+                }
+            }
+
+            if (vm == null) throw new ManagementException("ChangeGuestCacheType: Unable to get the VM setting");
+
+            vm["GuestControlledCacheTypes"] = (bool)isEnableGuestControlCache;
+
+            ManagementObject srv = new ManagementClass(scope, new ManagementPath("Msvm_VirtualSystemManagementService"), null).GetInstances().Cast<ManagementObject>().FirstOrDefault() ?? throw new ManagementException("MountIntoVM: Assignment service is either not running or crashed");
+            UInt32 outParams = (UInt32)srv.InvokeMethod("ModifySystemSettings", new object[]
+            {
+                vm.GetText(TextFormat.WmiDtd20)
+            });
+
+            switch (outParams)
+            {
+                case (UInt32)0:
+                    break;
+                case (UInt32)1:
+                    throw new ManagementException("ChangeGuestCacheType: Not Supported");
+                case (UInt32)2:
+                    throw new ManagementException("ChangeGuestCacheType: Failed");
+                case (UInt32)3:
+                    throw new ManagementException("ChangeGuestCacheType: Timed out");
+                case (UInt32)4:
+                    throw new ManagementException("ChangeGuestCacheType: Invalid Parameter");
+                case (UInt32)5:
+                    throw new ManagementException("ChangeGuestCacheType: Invalid State");
+                case (UInt32)6:
+                    throw new ManagementException("ChangeGuestCacheType: Incompatible Parameters");
+                case (UInt32)4096:
+                    throw new ManagementException("ChangeGuestCacheType: Method Parameters Checked but failed to Execute");
+                default:
+                    throw new ManagementException("ChangeGuestCacheType: Unknown error");
+            }
+        }
+
+        public void ChangeMemAllocate(string vmName, int highMem, int lowMem)
+        {
+            Connect("root\\virtualization\\v2");
+
+            ManagementObject vm = null;
+
+            foreach (ManagementObject obj in GetObjects("Msvm_VirtualSystemSettingData", "*").Cast<ManagementObject>())
+            {
+                if (obj["Caption"].ToString().Equals("Virtual Machine Settings") && !obj["InstanceID"].ToString().Contains("Microsoft:Definition"))
+                {
+                    string hostName = obj["ElementName"]?.ToString();
+
+                    if (hostName == null || hostName.Length == 0) continue;
+
+                    if (hostName.Equals(vmName))
+                    {
+                        vm = obj;
+                    }
+                }
+            }
+
+            if (vm == null) throw new ManagementException("ChangeMemAllocate: Unable to get the VM setting");
+
+            vm["LowMmioGapSize"] = (UInt64)(lowMem);
+            vm["HighMmioGapSize"] = (UInt64)(highMem);
+
+            ManagementObject srv = new ManagementClass(scope, new ManagementPath("Msvm_VirtualSystemManagementService"), null).GetInstances().Cast<ManagementObject>().FirstOrDefault() ?? throw new ManagementException("MountIntoVM: Assignment service is either not running or crashed");
+            UInt32 outParams = (UInt32)srv.InvokeMethod("ModifySystemSettings", new object[]
+            {
+                vm.GetText(TextFormat.WmiDtd20)
+            });
+
+            switch (outParams)
+            {
+                case (UInt32)0:
+                    break;
+                case (UInt32)1:
+                    throw new ManagementException("ChangeMemAllocate: Not Supported");
+                case (UInt32)2:
+                    throw new ManagementException("ChangeMemAllocate: Failed");
+                case (UInt32)3:
+                    throw new ManagementException("ChangeMemAllocate: Timed out");
+                case (UInt32)4:
+                    throw new ManagementException("ChangeMemAllocate: Invalid Parameter");
+                case (UInt32)5:
+                    throw new ManagementException("ChangeMemAllocate: Invalid State");
+                case (UInt32)6:
+                    throw new ManagementException("ChangeMemAllocate: Incompatible Parameters");
+                case (UInt32)4096:
+                    throw new ManagementException("ChangeMemAllocate: Method Parameters Checked but failed to Execute");
+                default:
+                    throw new ManagementException("ChangeMemAllocate: Unknown error");
+            }
+        }
+
         public void MountPnPDeviceToPcip(string deviceID)
         {
             UInt32 outObj = (UInt32)32779;
@@ -123,7 +232,7 @@ namespace DDAGUI.WMIProperties
                 case (UInt32)0:
                     break;
                 case (UInt32)4096:
-                    throw new ManagementException("MountPnPDeviceToPcip: Method Parameters Checked - Job Started");
+                    throw new ManagementException("MountPnPDeviceToPcip: Method Parameters Checked but failed to Execute");
                 case (UInt32)32768:
                     throw new ManagementException("MountPnPDeviceToPcip: Access Denied");
                 case (UInt32)32770:
@@ -157,7 +266,7 @@ namespace DDAGUI.WMIProperties
             string deviceLocation = string.Empty;
             string actualDevicePath = devicePath.Replace("PCIP\\", "PCI\\");
 
-            foreach (ManagementObject obj in GetObjects("Msvm_PciExpress", "*"))
+            foreach (ManagementObject obj in GetObjects("Msvm_PciExpress", "*").Cast<ManagementObject>())
             {
                 if (obj["DeviceInstancePath"].ToString().Equals(devicePath))
                 {
@@ -180,7 +289,7 @@ namespace DDAGUI.WMIProperties
                 case (UInt32)0:
                     break;
                 case (UInt32)4096:
-                    throw new ManagementException("DismountPnPDeviceFromPcip: Method Parameters Checked - Job Started");
+                    throw new ManagementException("DismountPnPDeviceFromPcip: Method Parameters Checked but failed to Execute");
                 case (UInt32)32768:
                     throw new ManagementException("DismountPnPDeviceFromPcip: Failed");
                 case (UInt32)32769:
@@ -224,7 +333,7 @@ namespace DDAGUI.WMIProperties
             }
         }
 
-        public void MountIntoVM(string deviceId, string vmName)
+        public void MountIntoVM(string vmName, string deviceId)
         {
             Connect("root\\virtualization\\v2");
 
@@ -246,7 +355,7 @@ namespace DDAGUI.WMIProperties
 
             foreach (ManagementObject vmSetting in GetObjects("Msvm_VirtualSystemSettingData", "*").Cast<ManagementObject>())
             {
-                if (vmSetting["Caption"].ToString().Equals("Virtual Machine Settings") && !vmSetting["InstanceID"].ToString().Equals("Microsoft:Definition\\VirtualSystem\\Default"))
+                if (vmSetting["Caption"].ToString().Equals("Virtual Machine Settings") && !vmSetting["InstanceID"].ToString().Contains("Microsoft:Definition"))
                 {
                     string hostName = vmSetting["ElementName"]?.ToString();
 
@@ -313,7 +422,7 @@ namespace DDAGUI.WMIProperties
                 case (UInt32)4:
                     throw new ManagementException("MountIntoVM: Invalid Parameter");
                 case (UInt32)4096:
-                    throw new ManagementException("MountIntoVM: Method Parameters Checked - Job Started");
+                    throw new ManagementException("MountIntoVM: Method Parameters Checked but failed to Execute");
                 case (UInt32)4097:
                     throw new ManagementException("MountIntoVM: The function may not be called or is reserved for vendor");
                 default:
@@ -359,7 +468,7 @@ namespace DDAGUI.WMIProperties
                 case (UInt32)5:
                     throw new ManagementException("DismountFromVM: Invalid State");
                 case (UInt32)6:
-                    throw new ManagementException("DismountFromVM: Method Parameters Checked - Job Started");
+                    throw new ManagementException("DismountFromVM: Method Parameters Checked but failed to Execute");
                 default:
                     throw new ManagementException("DismountFromVM: Unknown error");
             }

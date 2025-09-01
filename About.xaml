@@ -7,14 +7,17 @@
         mc:Ignorable="d"
         Title="About" Height="130" Width="420">
     <Grid>
-        <TextBlock Name="TextBoxDescription" Margin="5,5,10,5" TextWrapping="Wrap">
+        <Grid.Margin>
+            <Thickness Top="10" Bottom="10" Left="5" Right="5"/>
+        </Grid.Margin>
+        <TextBlock Name="TextBoxDescription" TextWrapping="Wrap">
             Hyper-V DDA, by TheFlightSims. Currently under support.
 				<LineBreak />
 				<LineBreak />
             Copyright (C) 2025 TheFlightSims
 				<LineBreak />
 				<LineBreak />
-            This tool is the alternative tool for Hyper-V DDA management on PowerShell v3.0. All comamnds are implemented in WMI.
+            This tool is the alternative tool for Discrete Device Assignment deployment on PowerShell. All comamnds are implemented in WMI.
 				<LineBreak />
 				<LineBreak />
         </TextBlock>

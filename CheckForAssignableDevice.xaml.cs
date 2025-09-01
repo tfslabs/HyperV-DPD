@@ -77,8 +77,7 @@ namespace DDAGUI
                             {
                                 if (deviceResource["Dependent"].ToString().Contains(deviceId.Replace("\\", "\\\\")))
                                 {
-                                    string addr = ((string[])deviceResource["Antecedent"].ToString().Split('='))[1].Replace("\"", "");
-                                    startingAddresses.Add(addr);
+                                    startingAddresses.Add((((string[])deviceResource["Antecedent"].ToString().Split('='))[1]).Replace("\"", ""));
                                 }
                             }
 
@@ -94,9 +93,7 @@ namespace DDAGUI
                                 {
                                     if (startingAddresses.Contains(deviceMem["StartingAddress"].ToString()))
                                     {
-                                        double startingRange = Double.Parse(deviceMem["StartingAddress"].ToString());
-                                        double endingRange = Double.Parse(deviceMem["EndingAddress"].ToString());
-                                        memoryGap += Math.Ceiling((endingRange - startingRange) / 1048576.0);
+                                        memoryGap += Math.Ceiling((Double.Parse(deviceMem["EndingAddress"].ToString()) - Double.Parse(deviceMem["StartingAddress"].ToString())) / 1048576.0);
                                     }
                                 }
                             }

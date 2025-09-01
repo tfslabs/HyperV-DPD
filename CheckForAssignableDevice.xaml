@@ -35,7 +35,7 @@
         </Grid>
         <Grid Grid.Row="1">
             <Grid.Margin>
-                <Thickness Left="10" Right="10"/>
+                <Thickness Left="10" Right="10" Top="5" Bottom="5"/>
             </Grid.Margin>
             <Grid.ColumnDefinitions>
                 <ColumnDefinition/>
