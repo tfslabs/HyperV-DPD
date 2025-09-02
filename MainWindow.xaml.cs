@@ -252,7 +252,9 @@ namespace DDAGUI
                         {
                             foreach (ManagementObject devInstancePath in devMount.Cast<ManagementObject>())
                             {
-                                machine.DismountPnPDeviceFromPcip(devInstancePath["DeviceInstancePath"].ToString());
+                                string devInsPath = devInstancePath["DeviceInstancePath"].ToString();
+                                machine.DismountPnPDeviceFromPcip(devInsPath);
+                                machine.ChangePnpDeviceBehaviour(devInsPath.Replace("PCIP\\", "PCI\\"), "Enable");
                             }
                         }
                     });
