@@ -10,8 +10,7 @@
     SizeToContent="WidthAndHeight"
     ResizeMode="NoResize"
     mc:Ignorable="d"
-    Icon="/main.ico"
-    WindowStyle="ThreeDBorderWindow">
+    Icon="/main.ico" WindowStartupLocation="CenterScreen">
     <Grid Width="800">
         <Grid.RowDefinitions>
             <RowDefinition Height="9*"/>
