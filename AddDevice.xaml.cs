@@ -1,5 +1,7 @@
 ﻿using DDAGUI.WMIProperties;
 using System;
+using System.Linq;
+using System.Management;
 using System.Windows;
 
 namespace DDAGUI
@@ -56,7 +58,7 @@ namespace DDAGUI
 
             try
             {
-                foreach (var device in machine.GetObjects("Win32_PnPEntity", "Status, PNPClass, Name, DeviceID"))
+                foreach (ManagementObject device in machine.GetObjects("Win32_PnPEntity", "Status, PNPClass, Name, DeviceID").Cast<ManagementObject>())
                 {
                     string deviceStatus = device["Status"]?.ToString() ?? "Unknown";
                     string deviceType = device["PNPClass"]?.ToString() ?? "Unknown";

@@ -1,6 +1,8 @@
 ﻿using DDAGUI.WMIProperties;
 using System;
 using System.Collections.Generic;
+using System.Linq;
+using System.Management;
 using System.Threading.Tasks;
 using System.Windows;
 
@@ -44,7 +46,7 @@ namespace DDAGUI
                 {
                     machine.Connect("root\\cimv2");
 
-                    foreach (var device in machine.GetObjects("Win32_PnPEntity", "DeviceID, Caption, Status"))
+                    foreach (ManagementObject device in machine.GetObjects("Win32_PnPEntity", "DeviceID, Caption, Status").Cast<ManagementObject>())
                     {
                         if (device["DeviceID"].ToString().StartsWith("PCI\\"))
                         {
@@ -55,7 +57,7 @@ namespace DDAGUI
                             string deviceNote = string.Empty;
                             double memoryGap = 0;
 
-                            foreach (var actualPnPDevice in machine.GetObjects("Win32_PnPDevice", "SameElement, SystemElement"))
+                            foreach (ManagementObject actualPnPDevice in machine.GetObjects("Win32_PnPDevice", "SameElement, SystemElement").Cast<ManagementObject>())
                             {
                                 if (actualPnPDevice["SystemElement"].ToString().Contains(deviceId.Replace("\\", "\\\\")))
                                 {
@@ -73,7 +75,7 @@ namespace DDAGUI
                                 deviceNote += ((deviceNote.Length == 0) ? "" : "\n") + "The PCI device is not support either Express Endpoint, Embedded Endpoint, or Legacy Express Endpoint.";
                             }
 
-                            foreach (var deviceResource in machine.GetObjects("Win32_PNPAllocatedResource", "Antecedent, Dependent"))
+                            foreach (ManagementObject deviceResource in machine.GetObjects("Win32_PNPAllocatedResource", "Antecedent, Dependent").Cast<ManagementObject>())
                             {
                                 if (deviceResource["Dependent"].ToString().Contains(deviceId.Replace("\\", "\\\\")))
                                 {
@@ -89,7 +91,7 @@ namespace DDAGUI
 
                             if (isAssignable)
                             {
-                                foreach (var deviceMem in machine.GetObjects("Win32_DeviceMemoryAddress", "StartingAddress, EndingAddress"))
+                                foreach (ManagementObject deviceMem in machine.GetObjects("Win32_DeviceMemoryAddress", "StartingAddress, EndingAddress").Cast<ManagementObject>())
                                 {
                                     if (startingAddresses.Contains(deviceMem["StartingAddress"].ToString()))
                                     {

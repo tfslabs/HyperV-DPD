@@ -1,5 +1,7 @@
 ﻿using DDAGUI.WMIProperties;
 using System;
+using System.Linq;
+using System.Management;
 using System.Windows;
 
 namespace DDAGUI
@@ -35,7 +37,7 @@ namespace DDAGUI
             try
             {
                 machine.Connect("root\\cimv2");
-                foreach (var srv in machine.GetObjects("Win32_Service", "Name, Caption, State"))
+                foreach (ManagementObject srv in machine.GetObjects("Win32_Service", "Name, Caption, State").Cast<ManagementObject>())
                 {
                     if (srv["Name"] == null || !WMIDefaultValues.serviceNames.Contains(srv["Name"].ToString()))
                     {

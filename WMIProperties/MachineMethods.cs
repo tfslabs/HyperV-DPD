@@ -209,9 +209,6 @@ namespace DDAGUI.WMIProperties
         public void MountPnPDeviceToPcip(string deviceID)
         {
             Connect("root\\cimv2");
-            
-            UInt32 outObj = (UInt32)32779;
-            
             foreach (ManagementObject deviceSearcher in GetObjects("Win32_PnPEntity", "DeviceId").Cast<ManagementObject>())
             {
                 if (deviceSearcher["DeviceId"].ToString().Equals(deviceID))
@@ -226,7 +223,7 @@ namespace DDAGUI.WMIProperties
             }
 
             Connect("root\\virtualization\\v2");
-            
+
             ManagementObject setting = (new ManagementClass(scope, new ManagementPath("Msvm_AssignableDeviceDismountSettingData"), null)).CreateInstance();
 
             setting["DeviceInstancePath"] = deviceID;
@@ -236,8 +233,8 @@ namespace DDAGUI.WMIProperties
 
             ManagementObject srv = new ManagementClass(scope, new ManagementPath("Msvm_AssignableDeviceService"), null).GetInstances().Cast<ManagementObject>().FirstOrDefault() ?? throw new ManagementException("MountPnPDeviceToPcip: Assignment service is either not running or crashed");
 
-            outObj = (UInt32)srv.InvokeMethod("DismountAssignableDevice", new object[] { 
-                setting.GetText(TextFormat.WmiDtd20) 
+            uint outObj = (uint)srv.InvokeMethod("DismountAssignableDevice", new object[] {
+                setting.GetText(TextFormat.WmiDtd20)
             });
 
             switch (outObj)
@@ -368,7 +365,10 @@ namespace DDAGUI.WMIProperties
                     break;
                 }
             }
-            if (hostRes == String.Empty) throw new ManagementException("MountIntoVM: Unable to get HostResource");
+            if (hostRes == String.Empty)
+            {
+                throw new ManagementException("MountIntoVM: Unable to get HostResource");
+            }
 
             foreach (ManagementObject vmSetting in GetObjects("Msvm_VirtualSystemSettingData", "*").Cast<ManagementObject>())
             {
@@ -376,7 +376,10 @@ namespace DDAGUI.WMIProperties
                 {
                     string hostName = vmSetting["ElementName"]?.ToString();
 
-                    if (hostName == null || hostName.Length == 0) continue;
+                    if (hostName == null || hostName.Length == 0)
+                    {
+                        continue;
+                    }
 
                     if (hostName.Equals(vmName))
                     {
@@ -387,8 +390,14 @@ namespace DDAGUI.WMIProperties
 
                 }
             }
-            if (vmRes == String.Empty) throw new ManagementException("MountIntoVM: Unable to generate InstanceID");
-            if (vmCurrentSetting == null) throw new ManagementException("MountIntoVM: Unable to get setting for VM");
+            if (vmRes == String.Empty)
+            {
+                throw new ManagementException("MountIntoVM: Unable to generate InstanceID");
+            }
+            if (vmCurrentSetting == null)
+            {
+                throw new ManagementException("MountIntoVM: Unable to get setting for VM");
+            }
 
             setting["Address"] = String.Empty;
             setting["AddressOnParent"] = String.Empty;
@@ -462,7 +471,10 @@ namespace DDAGUI.WMIProperties
                 }
             }
 
-            if (deviceObj == null) throw new ManagementException("DismountFromVM: Error while finding the device ID");
+            if (deviceObj == null)
+            {
+                throw new ManagementException("DismountFromVM: Error while finding the device ID");
+            }
 
             ManagementObject srv = new ManagementClass(scope, new ManagementPath("Msvm_VirtualSystemManagementService"), null).GetInstances().Cast<ManagementObject>().FirstOrDefault() ?? throw new ManagementException("DismountFromVM: Assignment service is either not running or crashed");
             UInt32 outParams = (UInt32)srv.InvokeMethod("RemoveResourceSettings", new object[]
