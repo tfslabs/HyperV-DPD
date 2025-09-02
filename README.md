@@ -4,9 +4,11 @@
 
 # Hyper-V DDA GUI
 
-Hyper-V DDA GUI provides the Graphical User Interface for deploying Discrete Device Assignment on Hyper-V server.
+[![CodeQL](https://github.com/tfslabs/dda-gui/actions/workflows/github-code-scanning/codeql/badge.svg)](https://github.com/tfslabs/dda-gui/actions/workflows/github-code-scanning/codeql)
 
-It also handles WMI remote connection, allowing administrator to remotely deployment DDA on server without complex Powershell scripts.
+Hyper-V DDA GUI provides a graphical user interface for deploying Discrete Device Assignment on a Hyper-V server.
+
+It also handles WMI remote connections, allowing administrators to deploy DDA on servers without complex PowerShell scripts remotely.
 
 ## How to use?
 
