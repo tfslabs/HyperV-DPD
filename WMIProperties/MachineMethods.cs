@@ -145,7 +145,7 @@ namespace DDAGUI.WMIProperties
             }
         }
 
-        public void ChangeMemAllocate(string vmName, UInt64 highMem, UInt64 lowMem)
+        public void ChangeMemAllocate(string vmName, UInt64 lowMem, UInt64 highMem)
         {
             Connect("root\\virtualization\\v2");
 
@@ -171,13 +171,13 @@ namespace DDAGUI.WMIProperties
 
             if (vm == null)
             {
-                throw new ManagementException("ChangeMemAllocate: Unable to get the VM setting");
+                throw new ManagementException("ChangeGuestCacheType: Unable to get the VM setting");
             }
 
             vm["LowMmioGapSize"] = lowMem;
             vm["HighMmioGapSize"] = highMem;
 
-            ManagementObject srv = new ManagementClass(scope, new ManagementPath("Msvm_VirtualSystemManagementService"), null).GetInstances().Cast<ManagementObject>().FirstOrDefault() ?? throw new ManagementException("ChangeMemAllocate: Assignment service is either not running or crashed");
+            ManagementObject srv = new ManagementClass(scope, new ManagementPath("Msvm_VirtualSystemManagementService"), null).GetInstances().Cast<ManagementObject>().FirstOrDefault() ?? throw new ManagementException("ChangeGuestCacheType: Assignment service is either not running or crashed");
             UInt32 outParams = (UInt32)srv.InvokeMethod("ModifySystemSettings", new object[]
             {
                 vm.GetText(TextFormat.WmiDtd20)
@@ -188,21 +188,21 @@ namespace DDAGUI.WMIProperties
                 case (UInt32)0:
                     break;
                 case (UInt32)1:
-                    throw new ManagementException("ChangeMemAllocate: Not Supported");
+                    throw new ManagementException("ChangeGuestCacheType: Not Supported");
                 case (UInt32)2:
-                    throw new ManagementException("ChangeMemAllocate: Failed");
+                    throw new ManagementException("ChangeGuestCacheType: Failed");
                 case (UInt32)3:
-                    throw new ManagementException("ChangeMemAllocate: Timed out");
+                    throw new ManagementException("ChangeGuestCacheType: Timed out");
                 case (UInt32)4:
-                    throw new ManagementException("ChangeMemAllocate: Invalid Parameter");
+                    throw new ManagementException("ChangeGuestCacheType: Invalid Parameter");
                 case (UInt32)5:
-                    throw new ManagementException("ChangeMemAllocate: Invalid State");
+                    throw new ManagementException("ChangeGuestCacheType: Invalid State");
                 case (UInt32)6:
-                    throw new ManagementException("ChangeMemAllocate: Incompatible Parameters");
+                    throw new ManagementException("ChangeGuestCacheType: Incompatible Parameters");
                 case (UInt32)4096:
-                    throw new ManagementException("ChangeMemAllocate: Method Parameters Checked but failed to Execute");
+                    throw new ManagementException("ChangeGuestCacheType: Method Parameters Checked but failed to Execute");
                 default:
-                    throw new ManagementException("ChangeMemAllocate: Unknown error");
+                    throw new ManagementException("ChangeGuestCacheType: Unknown error");
             }
         }
 

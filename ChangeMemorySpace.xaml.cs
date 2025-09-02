@@ -21,17 +21,17 @@ namespace DDAGUI
          */
         private void Confirm_Button(object sender, RoutedEventArgs e)
         {
-            if (int.TryParse(LowMemory_TextBox.Text, out int lowMemCompare) && int.TryParse(HighMemory_TextBox.Text, out int highMemCompare))
+            if (UInt64.TryParse(LowMemory_TextBox.Text, out UInt64 lowMemCompare) && UInt64.TryParse(HighMemory_TextBox.Text, out UInt64 highMemCompare))
             {
-                if ((lowMemCompare < highMemCompare) && (lowMemCompare > 0 && highMemCompare > 0))
+                if ((lowMemCompare >= 128 && lowMemCompare <= 3584) && (highMemCompare >= 4096 && highMemCompare <= (UInt64.MaxValue - 2)))
                 {
-                    memRange.lowMem = (UInt64)lowMemCompare;
-                    memRange.highMem = (UInt64)highMemCompare;
+                    memRange.lowMem = (UInt64)(lowMemCompare);
+                    memRange.highMem = (UInt64)(highMemCompare);
                     DialogResult = true;
                 }
                 else
                 {
-                    MessageBox.Show("Make sure the Low Memory is lower than High Memory and both are larger than 0.", "Warning", MessageBoxButton.OK, MessageBoxImage.Warning);
+                    MessageBox.Show("Make sure the Low MMIO Gap is in range (128, 3584) and High MMIO is larger than 4096", "Warning", MessageBoxButton.OK, MessageBoxImage.Warning);
                 }
             }
             else

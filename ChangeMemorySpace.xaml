@@ -31,7 +31,7 @@
                 <ColumnDefinition MinWidth="50" Width="*"/>
                 <ColumnDefinition Width="4*"/>
             </Grid.ColumnDefinitions>
-            <TextBlock Grid.Column="0" VerticalAlignment="Center" HorizontalAlignment="Left">Low Memory</TextBlock>
+            <TextBlock Grid.Column="0" VerticalAlignment="Center" HorizontalAlignment="Left">Low MMIO</TextBlock>
             <TextBox x:Name="LowMemory_TextBox" Grid.Column="1" VerticalAlignment="Center" Margin="5,0,0,0"></TextBox>
         </Grid>
         <Grid Grid.Row="2">
@@ -42,7 +42,7 @@
                 <ColumnDefinition MinWidth="50" Width="*"/>
                 <ColumnDefinition Width="4*"/>
             </Grid.ColumnDefinitions>
-            <TextBlock Grid.Column="0" VerticalAlignment="Center" HorizontalAlignment="Left">High Memory</TextBlock>
+            <TextBlock Grid.Column="0" VerticalAlignment="Center" HorizontalAlignment="Left">High MMIO</TextBlock>
             <TextBox x:Name="HighMemory_TextBox" Grid.Column="1" VerticalAlignment="Center" Margin="5,0,0,0"></TextBox>
         </Grid>
         <Grid Grid.Row="3">
