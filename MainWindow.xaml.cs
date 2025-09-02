@@ -72,13 +72,15 @@ namespace DDAGUI
 
                     if (deviceId != null)
                     {
+                        string vmName = VMList.SelectedItem.GetType().GetProperty("VMName").GetValue(VMList.SelectedItem, null).ToString();
+
                         await Task.Run(() =>
                         {
-                            string vmName = VMList.SelectedItem.GetType().GetProperty("VMName").GetValue(VMList.SelectedItem, null).ToString();
                             machine.MountPnPDeviceToPcip(deviceId);
                             machine.MountIntoVM(vmName, deviceId);
-                            _ = RefreshVMs();
                         });
+
+                        await RefreshVMs();
                     }
                     else
                     {
@@ -88,7 +90,7 @@ namespace DDAGUI
                 catch (Exception ex)
                 {
                     WMIDefaultValues.HandleException(ex, machine.GetComputerName());
-                    StatusBarChangeBehaviour(false, "No Device Added");
+                    StatusBarChangeBehaviour(false, "Error");
                 }
             }
             else
@@ -104,16 +106,17 @@ namespace DDAGUI
             {
                 if (VMList.SelectedItem != null && DevicePerVMList.SelectedItem != null)
                 {
+                    StatusBarChangeBehaviour(true, "Removing device");
+                    string deviceId = DevicePerVMList.SelectedItem.GetType().GetProperty("DeviceID").GetValue(DevicePerVMList.SelectedItem, null).ToString();
+                    string devicePath = DevicePerVMList.SelectedItem.GetType().GetProperty("DevicePath").GetValue(DevicePerVMList.SelectedItem, null).ToString();
+
                     await Task.Run(() =>
                     {
-                        string deviceId = DevicePerVMList.SelectedItem.GetType().GetProperty("DeviceID").GetValue(DevicePerVMList.SelectedItem, null).ToString();
-                        string devicePath = DevicePerVMList.SelectedItem.GetType().GetProperty("DevicePath").GetValue(DevicePerVMList.SelectedItem, null).ToString();
-
-
                         machine.DismountFromVM(deviceId);
                         machine.DismountPnPDeviceFromPcip(devicePath);
-                        _ = RefreshVMs();
                     });
+
+                    await RefreshVMs();
                 }
                 else
                 {
@@ -148,17 +151,17 @@ namespace DDAGUI
                 catch (Exception ex)
                 {
                     WMIDefaultValues.HandleException(ex, machine.GetComputerName());
-                    StatusBarChangeBehaviour(false, "No Device Selected");
+                    StatusBarChangeBehaviour(false, "Error");
                 }
             }
             else
             {
                 MessageBox.Show("Please select a VM and a device!", "Warning", MessageBoxButton.OK, MessageBoxImage.Warning);
-                StatusBarChangeBehaviour(false, "Error");
+                StatusBarChangeBehaviour(false, "No Device Selected");
             }
         }
 
-        private void ChangeMemLocation_Click(object sender, RoutedEventArgs e)
+        private async void ChangeMemLocation_Click(object sender, RoutedEventArgs e)
         {
             if (VMList.SelectedItem != null)
             {
@@ -171,7 +174,12 @@ namespace DDAGUI
 
                     if (lowMem != 0 && highMem != 0)
                     {
-                        machine.ChangeMemAllocate(vmName, lowMem, highMem);
+                        await Task.Run(() =>
+                        {
+                            machine.ChangeMemAllocate(vmName, lowMem, highMem);
+                        });
+
+                        await RefreshVMs();
                     }
                 }
                 catch (Exception ex)
@@ -203,7 +211,7 @@ namespace DDAGUI
         {
             try
             {
-                
+
                 MessageBoxResult isRemoveAll = MessageBox.Show(
                             $"Do you want to remove all assigned devices? (This option should only be used in case you accidently remove a VM without unmounting it first)",
                             "Remove all devices",
@@ -214,18 +222,37 @@ namespace DDAGUI
                 {
                     StatusBarChangeBehaviour(true, "In action");
 
-                    foreach (ManagementObject deviceid in machine.GetObjects("Msvm_PciExpressSettingData", "Caption, InstanceID").Cast<ManagementObject>())
+                    await Task.Run(() =>
                     {
-                        if (deviceid["Caption"].ToString().Equals("PCI Express Port"))
-                        {
-                            machine.DismountFromVM(deviceid["InstanceID"].ToString());
-                        }
-                    }
+                        ManagementObjectCollection devSettings = machine.GetObjects("Msvm_PciExpressSettingData", "InstanceID");
+                        ManagementObjectCollection devMount = machine.GetObjects("Msvm_PciExpress", "DeviceInstancePath");
 
-                    foreach (ManagementObject devInstancePath in machine.GetObjects("Msvm_PciExpress", "DeviceInstancePath").Cast<ManagementObject>())
-                    {
-                        machine.DismountPnPDeviceFromPcip(devInstancePath["DeviceInstancePath"].ToString());
-                    }
+                        if (!(devSettings == null || devSettings.Count == 0))
+                        {
+                            foreach (ManagementObject deviceid in devSettings.Cast<ManagementObject>())
+                            {
+                                string devInstanceId = deviceid["InstanceID"]?.ToString();
+
+                                if (devInstanceId == null ||  devInstanceId.Length == 0)
+                                {
+                                    continue;
+                                }
+
+                                if (!devInstanceId.Contains("Microsoft:Definition"))
+                                {
+                                    machine.DismountFromVM(devInstanceId);
+                                }
+                            }
+                        }
+
+                        if (!(devMount == null ||  devMount.Count == 0))
+                        {
+                            foreach (ManagementObject devInstancePath in devMount.Cast<ManagementObject>())
+                            {
+                                machine.DismountPnPDeviceFromPcip(devInstancePath["DeviceInstancePath"].ToString());
+                            }
+                        }
+                    });
 
                     await RefreshVMs();
                 }
@@ -272,7 +299,6 @@ namespace DDAGUI
                         {
                             machine.ChangeGuestCacheType(vmName, true);
                             MessageBox.Show($"Enabled guest control cache type successfully for {vmName}", "Info", MessageBoxButton.OK, MessageBoxImage.Information);
-                            _ = RefreshVMs();
                         });
                     }
                     else if (isEnableMemCache == MessageBoxResult.No)
@@ -281,13 +307,15 @@ namespace DDAGUI
                         {
                             machine.ChangeGuestCacheType(vmName, false);
                             MessageBox.Show($"Disabled guest control cache type successfully for {vmName}", "Info", MessageBoxButton.OK, MessageBoxImage.Information);
-                            _ = RefreshVMs();
                         });
                     }
+
+                    await RefreshVMs();
                 }
                 catch (Exception ex)
                 {
                     WMIDefaultValues.HandleException(ex, machine.GetComputerName());
+                    StatusBarChangeBehaviour(false, "Error");
                 }
             }
             else
@@ -430,11 +458,11 @@ namespace DDAGUI
             catch (Exception ex)
             {
                 WMIDefaultValues.HandleException(ex, machine.GetComputerName());
-                StatusBarChangeBehaviour(false, "Done");
+                StatusBarChangeBehaviour(false, "Error");
             }
         }
 
-        private void StatusBarChangeBehaviour(bool isRefresh, string labelMessage = "Refreshing...")
+        private void StatusBarChangeBehaviour(bool isRefresh, string labelMessage = "Refreshing")
         {
             BottomProgressBarStatus.IsIndeterminate = isRefresh;
             BottomLabelStatus.Text = labelMessage;
