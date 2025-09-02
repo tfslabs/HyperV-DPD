@@ -206,7 +206,7 @@ namespace DDAGUI.WMIProperties
             }
         }
 
-        public void MountPnPDeviceToPcip(string deviceID)
+        public void ChangePnpDeviceBehaviour(string deviceID, string behaviourMethod)
         {
             Connect("root\\cimv2");
             foreach (ManagementObject deviceSearcher in GetObjects("Win32_PnPEntity", "DeviceId").Cast<ManagementObject>())
@@ -215,13 +215,16 @@ namespace DDAGUI.WMIProperties
                 {
                     try
                     {
-                        _ = (UInt32)deviceSearcher.InvokeMethod("Disable", new object[] { });
+                        _ = (UInt32)deviceSearcher.InvokeMethod(behaviourMethod, new object[] { });
                     }
                     catch (IndexOutOfRangeException) { }
                     break;
                 }
             }
+        }
 
+        public void MountPnPDeviceToPcip(string deviceID)
+        {
             Connect("root\\virtualization\\v2");
 
             ManagementObject setting = (new ManagementClass(scope, new ManagementPath("Msvm_AssignableDeviceDismountSettingData"), null)).CreateInstance();
@@ -275,7 +278,6 @@ namespace DDAGUI.WMIProperties
             Connect("root\\virtualization\\v2");
 
             string deviceLocation = string.Empty;
-            string actualDevicePath = devicePath.Replace("PCIP\\", "PCI\\");
 
             foreach (ManagementObject obj in GetObjects("Msvm_PciExpress", "*").Cast<ManagementObject>())
             {
@@ -330,20 +332,6 @@ namespace DDAGUI.WMIProperties
                     throw new ManagementException("DismountPnPDeviceFromPcip: File not found");
                 default:
                     throw new ManagementException("Unknow error in method DismountPnPDeviceFromPcip");
-            }
-
-            Connect("root\\cimv2");
-            foreach (ManagementObject deviceSearcher in GetObjects("Win32_PnPEntity", "DeviceId").Cast<ManagementObject>())
-            {
-                if (deviceSearcher["DeviceId"].ToString().Equals(actualDevicePath))
-                {
-                    try
-                    {
-                        _ = (UInt32)deviceSearcher.InvokeMethod("Enable", new object[] { });
-                    }
-                    catch (IndexOutOfRangeException) { }
-                    break;
-                }
             }
         }
 

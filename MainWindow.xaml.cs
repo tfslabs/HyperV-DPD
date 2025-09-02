@@ -76,6 +76,7 @@ namespace DDAGUI
 
                         await Task.Run(() =>
                         {
+                            machine.ChangePnpDeviceBehaviour(deviceId, "Disable");
                             machine.MountPnPDeviceToPcip(deviceId);
                             machine.MountIntoVM(vmName, deviceId);
                         });
@@ -114,6 +115,7 @@ namespace DDAGUI
                     {
                         machine.DismountFromVM(deviceId);
                         machine.DismountPnPDeviceFromPcip(devicePath);
+                        machine.ChangePnpDeviceBehaviour(deviceId.Replace("PCIP\\", "PCI\\"), "Enable");
                     });
 
                     await RefreshVMs();
