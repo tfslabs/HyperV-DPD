@@ -224,6 +224,7 @@ namespace DDAGUI
 
                     await Task.Run(() =>
                     {
+                        machine.Connect("root\\virtualization\\v2");
                         ManagementObjectCollection devSettings = machine.GetObjects("Msvm_PciExpressSettingData", "InstanceID");
                         ManagementObjectCollection devMount = machine.GetObjects("Msvm_PciExpress", "DeviceInstancePath");
 
