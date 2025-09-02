@@ -139,9 +139,9 @@ namespace DDAGUI
                 {
                     if (VMList.SelectedItem != null && DevicePerVMList.SelectedItem != null)
                     {
-                        string deviceId = DevicePerVMList.SelectedItem.GetType().GetProperty("DeviceID").GetValue(DevicePerVMList.SelectedItem, null).ToString();
-                        Clipboard.SetText(deviceId);
-                        MessageBox.Show($"Copied device ID {deviceId} into clipboard", "Info", MessageBoxButton.OK, MessageBoxImage.Information);
+                        string devicePath = DevicePerVMList.SelectedItem.GetType().GetProperty("DevicePath").GetValue(DevicePerVMList.SelectedItem, null).ToString();
+                        Clipboard.SetText(devicePath);
+                        MessageBox.Show($"Copied device Path {devicePath} into clipboard", "Info", MessageBoxButton.OK, MessageBoxImage.Information);
                     }
                     else
                     {
@@ -465,6 +465,7 @@ namespace DDAGUI
 
         private void StatusBarChangeBehaviour(bool isRefresh, string labelMessage = "Refreshing")
         {
+            BottomProgressBarStatus.Visibility = (isRefresh) ? Visibility.Visible : Visibility.Hidden;
             BottomProgressBarStatus.IsIndeterminate = isRefresh;
             BottomLabelStatus.Text = labelMessage;
         }
