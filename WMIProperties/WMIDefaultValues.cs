@@ -2,6 +2,11 @@
 using System.Collections.Generic;
 using System.Windows;
 
+#if !DEBUG
+using System.Runtime.InteropServices;
+using System.Management;
+#endif
+
 namespace DDAGUI.WMIProperties
 {
     public static class WMIDefaultValues
