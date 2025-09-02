@@ -5,15 +5,16 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:DDAGUI"
         mc:Ignorable="d"
-        Title="About" Height="130" Width="420">
-    <Grid>
-        <Grid.Margin>
-            <Thickness Top="10" Bottom="10" Left="5" Right="5"/>
-        </Grid.Margin>
-        <TextBlock Name="TextBoxDescription" TextWrapping="Wrap">
+        Title="About" 
+        Height="150"
+        Width="400"
+        SizeToContent="WidthAndHeight"
+        ResizeMode="NoResize">
+    <Grid Width="400">
+        <TextBlock Name="TextBoxDescription" TextWrapping="Wrap" Margin="5,5,5,5">
             Hyper-V DDA, by TheFlightSims. Currently under support.
 				<LineBreak />
-				<LineBreak />
+                <LineBreak />
             Copyright (C) 2025 TheFlightSims
 				<LineBreak />
 				<LineBreak />

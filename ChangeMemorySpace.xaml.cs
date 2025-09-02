@@ -1,4 +1,5 @@
-﻿using System.Windows;
+﻿using System;
+using System.Windows;
 
 namespace DDAGUI
 {
@@ -7,7 +8,7 @@ namespace DDAGUI
         /*
          * Global properties
          */
-        protected (int lowMem, int highMem) memRange;
+        protected (UInt64 lowMem, UInt64 highMem) memRange;
 
         public ChangeMemorySpace(string vmName)
         {
@@ -24,8 +25,8 @@ namespace DDAGUI
             {
                 if ((lowMemCompare < highMemCompare) && (lowMemCompare > 0 && highMemCompare > 0))
                 {
-                    memRange.lowMem = lowMemCompare;
-                    memRange.highMem = highMemCompare;
+                    memRange.lowMem = (UInt64)lowMemCompare;
+                    memRange.highMem = (UInt64)highMemCompare;
                     DialogResult = true;
                 }
                 else
@@ -47,7 +48,7 @@ namespace DDAGUI
         /*
          * Non-button methods
          */
-        public (int, int) ReturnValue()
+        public (UInt64, UInt64) ReturnValue()
         {
             ShowDialog();
 

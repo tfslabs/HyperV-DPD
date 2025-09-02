@@ -1,5 +1,4 @@
-﻿using DDAGUI.Properties;
-using System;
+﻿using System;
 using System.Linq;
 using System.Management;
 using System.Security;
@@ -59,7 +58,7 @@ namespace DDAGUI.WMIProperties
          */
         public string GetComputerName()
         {
-            return userCredential.computerName;
+            return (userCredential.computerName);
         }
 
         /*
@@ -80,7 +79,7 @@ namespace DDAGUI.WMIProperties
         {
             ObjectQuery query = new ObjectQuery($"SELECT {fields} FROM {className}");
             searcher = new ManagementObjectSearcher(scope, query);
-            return searcher?.Get();
+            return (searcher?.Get());
         }
 
         /*
@@ -98,7 +97,10 @@ namespace DDAGUI.WMIProperties
                 {
                     string hostName = obj["ElementName"]?.ToString();
 
-                    if (hostName == null || hostName.Length == 0) continue;
+                    if (hostName == null || hostName.Length == 0)
+                    {
+                        continue;
+                    }
 
                     if (hostName.Equals(vmName))
                     {
@@ -107,11 +109,14 @@ namespace DDAGUI.WMIProperties
                 }
             }
 
-            if (vm == null) throw new ManagementException("ChangeGuestCacheType: Unable to get the VM setting");
+            if (vm == null)
+            {
+                throw new ManagementException("ChangeGuestCacheType: Unable to get the VM setting");
+            }
 
-            vm["GuestControlledCacheTypes"] = (bool)isEnableGuestControlCache;
+            vm["GuestControlledCacheTypes"] = (bool)(isEnableGuestControlCache);
 
-            ManagementObject srv = new ManagementClass(scope, new ManagementPath("Msvm_VirtualSystemManagementService"), null).GetInstances().Cast<ManagementObject>().FirstOrDefault() ?? throw new ManagementException("MountIntoVM: Assignment service is either not running or crashed");
+            ManagementObject srv = new ManagementClass(scope, new ManagementPath("Msvm_VirtualSystemManagementService"), null).GetInstances().Cast<ManagementObject>().FirstOrDefault() ?? throw new ManagementException("ChangeGuestCacheType: Assignment service is either not running or crashed");
             UInt32 outParams = (UInt32)srv.InvokeMethod("ModifySystemSettings", new object[]
             {
                 vm.GetText(TextFormat.WmiDtd20)
@@ -140,7 +145,7 @@ namespace DDAGUI.WMIProperties
             }
         }
 
-        public void ChangeMemAllocate(string vmName, int highMem, int lowMem)
+        public void ChangeMemAllocate(string vmName, UInt64 highMem, UInt64 lowMem)
         {
             Connect("root\\virtualization\\v2");
 
@@ -152,7 +157,10 @@ namespace DDAGUI.WMIProperties
                 {
                     string hostName = obj["ElementName"]?.ToString();
 
-                    if (hostName == null || hostName.Length == 0) continue;
+                    if (hostName == null || hostName.Length == 0)
+                    {
+                        continue;
+                    }
 
                     if (hostName.Equals(vmName))
                     {
@@ -161,12 +169,15 @@ namespace DDAGUI.WMIProperties
                 }
             }
 
-            if (vm == null) throw new ManagementException("ChangeMemAllocate: Unable to get the VM setting");
+            if (vm == null)
+            {
+                throw new ManagementException("ChangeMemAllocate: Unable to get the VM setting");
+            }
 
-            vm["LowMmioGapSize"] = (UInt64)(lowMem);
-            vm["HighMmioGapSize"] = (UInt64)(highMem);
+            vm["LowMmioGapSize"] = lowMem;
+            vm["HighMmioGapSize"] = highMem;
 
-            ManagementObject srv = new ManagementClass(scope, new ManagementPath("Msvm_VirtualSystemManagementService"), null).GetInstances().Cast<ManagementObject>().FirstOrDefault() ?? throw new ManagementException("MountIntoVM: Assignment service is either not running or crashed");
+            ManagementObject srv = new ManagementClass(scope, new ManagementPath("Msvm_VirtualSystemManagementService"), null).GetInstances().Cast<ManagementObject>().FirstOrDefault() ?? throw new ManagementException("ChangeMemAllocate: Assignment service is either not running or crashed");
             UInt32 outParams = (UInt32)srv.InvokeMethod("ModifySystemSettings", new object[]
             {
                 vm.GetText(TextFormat.WmiDtd20)
@@ -197,9 +208,10 @@ namespace DDAGUI.WMIProperties
 
         public void MountPnPDeviceToPcip(string deviceID)
         {
-            UInt32 outObj = (UInt32)32779;
-
             Connect("root\\cimv2");
+            
+            UInt32 outObj = (UInt32)32779;
+            
             foreach (ManagementObject deviceSearcher in GetObjects("Win32_PnPEntity", "DeviceId").Cast<ManagementObject>())
             {
                 if (deviceSearcher["DeviceId"].ToString().Equals(deviceID))
@@ -214,6 +226,7 @@ namespace DDAGUI.WMIProperties
             }
 
             Connect("root\\virtualization\\v2");
+            
             ManagementObject setting = (new ManagementClass(scope, new ManagementPath("Msvm_AssignableDeviceDismountSettingData"), null)).CreateInstance();
 
             setting["DeviceInstancePath"] = deviceID;
@@ -221,11 +234,11 @@ namespace DDAGUI.WMIProperties
             setting["RequireAcsSupport"] = false;
             setting["RequireDeviceMitigations"] = false;
 
-            foreach (ManagementObject svc in GetObjects("Msvm_AssignableDeviceService", "*").Cast<ManagementObject>())
-            {
-                outObj = (UInt32)svc.InvokeMethod("DismountAssignableDevice", new object[] { setting.GetText(TextFormat.WmiDtd20) });
-                break;
-            }
+            ManagementObject srv = new ManagementClass(scope, new ManagementPath("Msvm_AssignableDeviceService"), null).GetInstances().Cast<ManagementObject>().FirstOrDefault() ?? throw new ManagementException("MountPnPDeviceToPcip: Assignment service is either not running or crashed");
+
+            outObj = (UInt32)srv.InvokeMethod("DismountAssignableDevice", new object[] { 
+                setting.GetText(TextFormat.WmiDtd20) 
+            });
 
             switch (outObj)
             {
@@ -263,6 +276,7 @@ namespace DDAGUI.WMIProperties
         public void DismountPnPDeviceFromPcip(string devicePath)
         {
             Connect("root\\virtualization\\v2");
+
             string deviceLocation = string.Empty;
             string actualDevicePath = devicePath.Replace("PCIP\\", "PCI\\");
 
@@ -275,7 +289,10 @@ namespace DDAGUI.WMIProperties
                 }
             }
 
-            if (deviceLocation == string.Empty) throw new ManagementException("DismountPnPDeviceFromPcip: Unable to get the device location");
+            if (deviceLocation == string.Empty)
+            {
+                throw new ManagementException("DismountPnPDeviceFromPcip: Unable to get the device location");
+            }
 
             ManagementObject srv = new ManagementClass(scope, new ManagementPath("Msvm_AssignableDeviceService"), null).GetInstances().Cast<ManagementObject>().FirstOrDefault() ?? throw new ManagementException("DismountPnPDeviceFromPcip: Assignment service is either not running or crashed");
             UInt32 virtv2_outparams = (UInt32)srv.InvokeMethod("MountAssignableDevice", new object[]
