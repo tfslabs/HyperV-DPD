@@ -10,6 +10,8 @@ Hyper-V DDA GUI provides a graphical user interface for deploying Discrete Devic
 
 It also handles WMI remote connections, allowing administrators to deploy DDA on servers without complex PowerShell scripts remotely.
 
+![Hyper-V DDA GUI Main Window](https://github.com/tfslabs/dda-gui/wiki/img/1.png)
+
 ## How to use?
 
 See in [wiki](https://github.com/tfslabs/dda-gui/wiki)
