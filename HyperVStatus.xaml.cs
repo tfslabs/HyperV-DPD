@@ -2,7 +2,6 @@
 using System;
 using System.Linq;
 using System.Management;
-using System.Threading.Tasks;
 using System.Windows;
 
 namespace DDAGUI

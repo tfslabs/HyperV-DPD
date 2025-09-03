@@ -25,15 +25,15 @@
                     <MenuItem Click="ConnectToAnotherComputer_Button" Header="Connect to _Another Computer" />
                     <MenuItem Click="QuitMainWindow_Click" Header="_Exit" />
                 </MenuItem>
-                <MenuItem x:Name="_MenuItemDDA" Header="DDA">
+                <MenuItem x:Name="_MenuItemDDA" Header="Discrete Device Assignment">
                     <MenuItem Click="AddDevice_Click" Header="_Add Device"/>
                     <MenuItem Click="RemDevice_Click" Header="_Remove Device" />
                     <MenuItem Click="CopyDevAddress_Click" Header="Copy Device Address" />
                     <Separator />
+                    <MenuItem Click="ChangeCacheTypes_Click" Header="_Change virtual machine Cache Types"/>
                     <MenuItem Click="ChangeMemLocation_Click" Header="_Change Memory Space" />
-                    <MenuItem Click="ChangeCacheTypes_Click" Header="_Change VM Cache Types"/>
                 </MenuItem>
-                <MenuItem x:Name="_MenuItemHVService" Header="_Hyper-V Service" >
+                <MenuItem x:Name="_MenuItemHVService" Header="_Hyper-V Global Settings" >
                     <MenuItem Click="HyperVServiceStatus_Click" Header="_Check Hyper-V Status" />
                     <MenuItem Click="AssignableDevice_Click" Header="_Check for Assignable Devices" />
                     <MenuItem Click="RemAllDevice_Click" Header="_Remove All Assigned Devices" />
@@ -65,7 +65,7 @@
                         <GridView>
                             <GridViewColumn Header="ID" DisplayMemberBinding="{Binding VMId}" Width="150"/>
                             <GridViewColumn Header="Name" DisplayMemberBinding="{Binding VMName}" Width="150"/>
-                            <GridViewColumn Header="Status" DisplayMemberBinding="{Binding VMStatus}" Width="60"/>
+                            <GridViewColumn Header="Status" DisplayMemberBinding="{Binding VMStatus}" Width="80"/>
                         </GridView>
                     </ListView.View>
                 </ListView>
@@ -101,11 +101,9 @@
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="Auto"/>
                     <ColumnDefinition Width="Auto"/>
-                    <ColumnDefinition Width="Auto"/>
                 </Grid.ColumnDefinitions>
-                <Button Grid.Column="0" Click="ChangeCacheTypes_Click" Content="Change VM Cache Type" HorizontalAlignment="Left" VerticalAlignment="Center" Margin="0,0,5,0" Padding="3,0,3,0" />
+                <Button Grid.Column="0" Click="ChangeCacheTypes_Click" Content="Change virtual machine Cache Type" HorizontalAlignment="Left" VerticalAlignment="Center" Margin="0,0,5,0" Padding="3,0,3,0" />
                 <Button Grid.Column="1" Click="ChangeMemLocation_Click" Content="Change Memory Space" HorizontalAlignment="Left" VerticalAlignment="Center" Margin="5,0,5,0" Padding="3,0,3,0" />
-                <Button Grid.Column="2" Click="AddDevice_Click" Content="Add Device" HorizontalAlignment="Left" VerticalAlignment="Center" Margin="5,0,5,0"  Padding="3,0,3,0" />
             </Grid>
             <Grid Grid.Column="1">
                 <Grid.Margin>
@@ -114,9 +112,11 @@
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="Auto"/>
                     <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="Auto"/>
                 </Grid.ColumnDefinitions>
-                <Button Grid.Column="0" Click="RemDevice_Click" Content="Remove Device" HorizontalAlignment="Left" VerticalAlignment="Center" Margin="0,0,5,0" Padding="3,0,3,0"/>
-                <Button Grid.Column="1" Click="CopyDevAddress_Click" Content="Copy Device Address" HorizontalAlignment="Left" VerticalAlignment="Center" Margin="0,0,5,0"  Padding="3,0,3,0" />
+                <Button Grid.Column="0" Click="AddDevice_Click" Content="Add Device" HorizontalAlignment="Left" VerticalAlignment="Center" Margin="0,0,5,0"  Padding="3,0,3,0" />
+                <Button Grid.Column="1" Click="RemDevice_Click" Content="Remove Device" HorizontalAlignment="Left" VerticalAlignment="Center" Margin="0,0,5,0" Padding="3,0,3,0"/>
+                <Button Grid.Column="2" Click="CopyDevAddress_Click" Content="Copy Device Address" HorizontalAlignment="Left" VerticalAlignment="Center" Margin="0,0,5,0"  Padding="3,0,3,0" />
             </Grid>
         </Grid>
         <Grid Grid.Row="3">

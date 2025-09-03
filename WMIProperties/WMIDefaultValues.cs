@@ -47,7 +47,12 @@ namespace DDAGUI.WMIProperties
         public static void HandleException(Exception ex, string machineName)
         {
 #if DEBUG
-            MessageBox.Show(ex.ToString(), $"Error on {machineName}", MessageBoxButton.OK, MessageBoxImage.Error);
+            MessageBox.Show(
+                ex.ToString(), 
+                $"Error on {machineName}", 
+                MessageBoxButton.OK, 
+                MessageBoxImage.Error
+            );
 #else
             string message = String.Empty;
             if (ex is UnauthorizedAccessException)

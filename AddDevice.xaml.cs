@@ -32,7 +32,12 @@ namespace DDAGUI
             }
             else
             {
-                MessageBox.Show("Please select a device to add.", "Warning", MessageBoxButton.OK, MessageBoxImage.Warning);
+                MessageBox.Show(
+                    "Please select a device to add.",
+                    "Warning",
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Warning
+                );
             }
         }
 

@@ -22,11 +22,14 @@ namespace DDAGUI
 
         private void ConnetToExternal_Button(object sender, RoutedEventArgs e)
         {
-            if (
-                ComputerName_TextBox.Text.Length == 0 ||
-                UserName_TextBox.Text.Length == 0)
+            if (ComputerName_TextBox.Text.Length == 0 || UserName_TextBox.Text.Length == 0)
             {
-                MessageBox.Show("Please don't leave computer name and user name empty", "Error", MessageBoxButton.OK, MessageBoxImage.Warning);
+                MessageBox.Show(
+                    "Please don't leave computer name and user name empty",
+                    "Error",
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Warning
+                );
             }
             else
             {

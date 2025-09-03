@@ -111,7 +111,7 @@ namespace DDAGUI.WMIProperties
 
             if (vm == null)
             {
-                throw new ManagementException("ChangeGuestCacheType: Unable to get the VM setting");
+                throw new ManagementException("ChangeGuestCacheType: Unable to get the virtual machine setting");
             }
 
             vm["GuestControlledCacheTypes"] = (bool)(isEnableGuestControlCache);
@@ -171,7 +171,7 @@ namespace DDAGUI.WMIProperties
 
             if (vm == null)
             {
-                throw new ManagementException("ChangeGuestCacheType: Unable to get the VM setting");
+                throw new ManagementException("ChangeGuestCacheType: Unable to get the virtual machine setting");
             }
 
             vm["LowMmioGapSize"] = lowMem;
@@ -387,33 +387,36 @@ namespace DDAGUI.WMIProperties
                 throw new ManagementException("MountIntoVM: Unable to get setting for VM");
             }
 
-            setting["Address"] = String.Empty;
-            setting["AddressOnParent"] = String.Empty;
+            // CIM_SettingData
+            setting["Caption"] = "PCI Express Port";
+            setting["Description"] = "Microsoft Virtual PCI Express Port Setting Data";
+            setting["InstanceID"] = vmRes;
+            setting["ElementName"] = "PCI Express Port";
+
+            // CIM_ResourceAllocationSettingData
+            setting["ResourceType"] = (UInt16)32769;
+            setting["OtherResourceType"] = null;
+            setting["ResourceSubType"] = "Microsoft:Hyper-V:Virtual Pci Express Port";
+            setting["PoolID"] = String.Empty;
+            setting["ConsumerVisibility"] = (UInt16)3;
+            setting["HostResource"] = new string[] { hostRes };
             setting["AllocationUnits"] = "count";
-            setting["AllowDirectTranslatedP2P"] = new bool[] { false };
+            setting["VirtualQuantity"] = (UInt64)1;
+            setting["Reservation"] = (UInt64)1;
+            setting["Limit"] = (UInt64)1;
+            setting["Weight"] = (UInt32)0;
             setting["AutomaticAllocation"] = true;
             setting["AutomaticDeallocation"] = true;
-            setting["Caption"] = "PCI Express Port";
-            setting["Connection"] = null;
-            setting["ConsumerVisibility"] = (UInt16)3;
-            setting["Description"] = "Microsoft Virtual PCI Express Port Setting Data";
-            setting["ElementName"] = "PCI Express Port";
-            setting["HostResource"] = new string[] { hostRes };
-            setting["InstanceID"] = vmRes;
-            setting["Limit"] = (UInt64)1;
-            setting["MappingBehavior"] = null;
-            setting["OtherResourceType"] = null;
             setting["Parent"] = null;
-            setting["PoolID"] = String.Empty;
-            setting["Reservation"] = (UInt64)1;
-            setting["ResourceSubType"] = "Microsoft:Hyper-V:Virtual Pci Express Port";
-            setting["ResourceType"] = (UInt16)32769;
-            setting["TargetVtl"] = (uint)0;
-            setting["VirtualFunctions"] = new UInt16[] { 0 };
-            setting["VirtualQuantity"] = (UInt64)1;
-            setting["VirtualSystemIdentifiers"] = new string[] { "{" + Guid.NewGuid() + "}" };
+            setting["Connection"] = null;
+            setting["Address"] = String.Empty;
+            setting["MappingBehavior"] = null;
+            setting["AddressOnParent"] = String.Empty;
             setting["VirtualQuantityUnits"] = "count";
-            setting["Weight"] = (UInt32)0;
+
+            // Msvm_PciExpressSettingData
+            setting["VirtualFunctions"] = new UInt16[] { 0 };
+            setting["VirtualSystemIdentifiers"] = new string[] { "{" + Guid.NewGuid() + "}" };
 
             ManagementObject srv = new ManagementClass(scope, new ManagementPath("Msvm_VirtualSystemManagementService"), null).GetInstances().Cast<ManagementObject>().FirstOrDefault() ?? throw new ManagementException("MountIntoVM: Assignment service is either not running or crashed");
 

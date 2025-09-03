@@ -5,20 +5,41 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:DDAGUI"
         mc:Ignorable="d"
-        Title="Check Hyper-V" 
+        Title="Hyper-V Service Status" 
         Height="300" 
         Width="400" 
         ResizeMode="NoResize" 
-        SizeToContent="WidthAndHeight" ScrollViewer.VerticalScrollBarVisibility="Hidden">
-    <Grid Width="400" Height="280">
-        <ListView x:Name="ListHVSrv" Margin="10,10,10,35" ScrollViewer.VerticalScrollBarVisibility="Hidden">
-            <ListView.View>
-                <GridView>
-                    <GridViewColumn Header="Name" DisplayMemberBinding="{Binding ServiceName}" Width="270"/>
-                    <GridViewColumn Header="Status" DisplayMemberBinding="{Binding ServiceStatus}" Width="100"/>
-                </GridView>
-            </ListView.View>
-        </ListView>
-        <Button Content="Refresh" HorizontalAlignment="Left" Margin="330,252,0,0" VerticalAlignment="Top" Width="60" Click="Refresh_Click"/>
+        SizeToContent="WidthAndHeight">
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="9*" MinHeight="100" MaxHeight="400"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+        <Grid.Margin>
+            <Thickness Top="10" Bottom="10"></Thickness>
+        </Grid.Margin>
+        <Grid Grid.Row="0">
+            <Grid.Margin>
+                <Thickness Left="10" Right="10"/>
+            </Grid.Margin>
+            <ListView x:Name="ListHVSrv">
+                <ListView.View>
+                    <GridView>
+                        <GridViewColumn Header="Name" DisplayMemberBinding="{Binding ServiceName}" Width="270"/>
+                        <GridViewColumn Header="Status" DisplayMemberBinding="{Binding ServiceStatus}" Width="100"/>
+                    </GridView>
+                </ListView.View>
+            </ListView>
+        </Grid>
+        <Grid Grid.Row="1">
+            <Grid.Margin>
+                <Thickness Left="10" Right="10"/>
+            </Grid.Margin>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition/>
+                <ColumnDefinition Width="Auto"/>
+            </Grid.ColumnDefinitions>
+            <Button Grid.Column="1" Content="Refresh" VerticalAlignment="Center" Click="Refresh_Click" Padding="5,0,5,0"/>
+        </Grid>
     </Grid>
 </Window>

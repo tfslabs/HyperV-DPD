@@ -48,7 +48,9 @@ namespace DDAGUI
 
             if (userCredential.computerName != "")
             {
-                machine = (userCredential.computerName.Equals("localhost")) ? new MachineMethods() : new MachineMethods(userCredential);
+                machine = (userCredential.computerName.Equals("localhost")) ?
+                    new MachineMethods() :
+                    new MachineMethods(userCredential);
                 await ReinitializeConnection();
             }
         }
@@ -62,18 +64,16 @@ namespace DDAGUI
         {
             if (VMList.SelectedItem != null)
             {
+                StatusBarChangeBehaviour(true, "Adding device");
+
+                AddDevice addDevice = new AddDevice(machine);
+                string deviceId = addDevice.GetDeviceId();
+
+                string vmName = VMList.SelectedItem.GetType().GetProperty("VMName").GetValue(VMList.SelectedItem, null).ToString();
                 try
                 {
-                    StatusBarChangeBehaviour(true, "Adding devices");
-
-                    AddDevice addDevice = new AddDevice(machine);
-
-                    string deviceId = addDevice.GetDeviceId();
-
                     if (deviceId != null)
                     {
-                        string vmName = VMList.SelectedItem.GetType().GetProperty("VMName").GetValue(VMList.SelectedItem, null).ToString();
-
                         await Task.Run(() =>
                         {
                             machine.ChangePnpDeviceBehaviour(deviceId, "Disable");
@@ -91,12 +91,31 @@ namespace DDAGUI
                 catch (Exception ex)
                 {
                     WMIDefaultValues.HandleException(ex, machine.GetComputerName());
-                    StatusBarChangeBehaviour(false, "Error");
+                    StatusBarChangeBehaviour(false, "Error, re-enabling device");
+
+                    // Re-enable target device
+                    try
+                    {
+                        await Task.Run(() =>
+                        {
+                            machine.ChangePnpDeviceBehaviour(deviceId, "Enable");
+                        });
+                    }
+                    catch (Exception exp)
+                    {
+                        WMIDefaultValues.HandleException(exp, machine.GetComputerName());
+                        StatusBarChangeBehaviour(false, "Re-enable device failed");
+                    }
                 }
             }
             else
             {
-                MessageBox.Show("Please select a VM to add a device!", "Warning", MessageBoxButton.OK, MessageBoxImage.Warning);
+                MessageBox.Show(
+                    "Please select a virtual machine on the list",
+                    "Warning",
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Warning
+                );
                 StatusBarChangeBehaviour(false, "No Device Added");
             }
         }
@@ -122,7 +141,12 @@ namespace DDAGUI
                 }
                 else
                 {
-                    MessageBox.Show("Please select a device from the VM List!", "Warning", MessageBoxButton.OK, MessageBoxImage.Warning);
+                    MessageBox.Show(
+                        "Please select a device from the virtual machine List!",
+                        "Warning",
+                        MessageBoxButton.OK,
+                        MessageBoxImage.Warning
+                    );
                     StatusBarChangeBehaviour(false, "No Device Selected");
                 }
             }
@@ -143,11 +167,21 @@ namespace DDAGUI
                     {
                         string devicePath = DevicePerVMList.SelectedItem.GetType().GetProperty("DevicePath").GetValue(DevicePerVMList.SelectedItem, null).ToString();
                         Clipboard.SetText(devicePath);
-                        MessageBox.Show($"Copied device Path {devicePath} into clipboard", "Info", MessageBoxButton.OK, MessageBoxImage.Information);
+                        MessageBox.Show(
+                            $"Copied device Path {devicePath} into clipboard",
+                            "Info",
+                            MessageBoxButton.OK,
+                            MessageBoxImage.Information
+                        );
                     }
                     else
                     {
-                        MessageBox.Show("Please select a device from the VM List!", "Warning", MessageBoxButton.OK, MessageBoxImage.Warning);
+                        MessageBox.Show(
+                            "Please select a device from the virtual machine List!",
+                            "Warning",
+                            MessageBoxButton.OK,
+                            MessageBoxImage.Warning
+                        );
                     }
                 }
                 catch (Exception ex)
@@ -158,7 +192,12 @@ namespace DDAGUI
             }
             else
             {
-                MessageBox.Show("Please select a VM and a device!", "Warning", MessageBoxButton.OK, MessageBoxImage.Warning);
+                MessageBox.Show(
+                    "Please select a virtual machine and a device!",
+                    "Warning",
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Warning
+                );
                 StatusBarChangeBehaviour(false, "No Device Selected");
             }
         }
@@ -192,8 +231,13 @@ namespace DDAGUI
             }
             else
             {
-                MessageBox.Show("Please select a VM to add a device!", "Warning", MessageBoxButton.OK, MessageBoxImage.Warning);
-                StatusBarChangeBehaviour(false, "No VM Selected");
+                MessageBox.Show(
+                    "Please select a virtual machine on the list",
+                    "Warning",
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Warning
+                );
+                StatusBarChangeBehaviour(false, "No virtual machine Selected");
             }
         }
 
@@ -213,12 +257,12 @@ namespace DDAGUI
         {
             try
             {
-
                 MessageBoxResult isRemoveAll = MessageBox.Show(
-                            $"Do you want to remove all assigned devices? (This option should only be used in case you accidently remove a VM without unmounting it first)",
+                            $"Do you want to remove all assigned devices? (This option should only be used in case you accidently remove a virtual machine without unmounting it first)",
                             "Remove all devices",
                             MessageBoxButton.YesNo,
-                            MessageBoxImage.Question);
+                            MessageBoxImage.Question
+                );
 
                 if (isRemoveAll == MessageBoxResult.Yes)
                 {
@@ -236,7 +280,7 @@ namespace DDAGUI
                             {
                                 string devInstanceId = deviceid["InstanceID"]?.ToString();
 
-                                if (devInstanceId == null ||  devInstanceId.Length == 0)
+                                if (devInstanceId == null || devInstanceId.Length == 0)
                                 {
                                     continue;
                                 }
@@ -248,7 +292,7 @@ namespace DDAGUI
                             }
                         }
 
-                        if (!(devMount == null ||  devMount.Count == 0))
+                        if (!(devMount == null || devMount.Count == 0))
                         {
                             foreach (ManagementObject devInstancePath in devMount.Cast<ManagementObject>())
                             {
@@ -303,7 +347,12 @@ namespace DDAGUI
                         await Task.Run(() =>
                         {
                             machine.ChangeGuestCacheType(vmName, true);
-                            MessageBox.Show($"Enabled guest control cache type successfully for {vmName}", "Info", MessageBoxButton.OK, MessageBoxImage.Information);
+                            MessageBox.Show(
+                                $"Enabled guest control cache type successfully for {vmName}",
+                                "Info",
+                                MessageBoxButton.OK,
+                                MessageBoxImage.Information
+                            );
                         });
                     }
                     else if (isEnableMemCache == MessageBoxResult.No)
@@ -311,7 +360,12 @@ namespace DDAGUI
                         await Task.Run(() =>
                         {
                             machine.ChangeGuestCacheType(vmName, false);
-                            MessageBox.Show($"Disabled guest control cache type successfully for {vmName}", "Info", MessageBoxButton.OK, MessageBoxImage.Information);
+                            MessageBox.Show(
+                                $"Disabled guest control cache type successfully for {vmName}",
+                                "Info",
+                                MessageBoxButton.OK,
+                                MessageBoxImage.Information
+                            );
                         });
                     }
 
@@ -325,7 +379,12 @@ namespace DDAGUI
             }
             else
             {
-                MessageBox.Show("Please select a VM to add a device", "Warning", MessageBoxButton.OK, MessageBoxImage.Warning);
+                MessageBox.Show(
+                    "Please select a virtual machine to add a device",
+                    "Warning",
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Warning
+                );
             }
         }
 
@@ -376,22 +435,37 @@ namespace DDAGUI
                     ManagementObjectCollection hyerpvObjects = machine.GetObjects("Msvm_ComputerSystem", "*");
                     if (hyerpvObjects == null || hyerpvObjects.Count == 0)
                     {
-                        MessageBox.Show("Please ensure Hyper-V is installed and running on this machine. You can still control the Hyper-V server remotely.", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                        MessageBox.Show(
+                            $"Hyper-V is not present on {machine.GetComputerName()}. You can still control the Hyper-V server remotely.",
+                            "Warning",
+                            MessageBoxButton.OK,
+                            MessageBoxImage.Warning
+                        );
                     }
 
                     machine.Connect("root\\cimv2");
-                    foreach (ManagementObject osInfo in machine.GetObjects("Win32_OperatingSystem", "BuildNumber, Caption").Cast<ManagementObject>())
+                    foreach (ManagementObject osInfo in machine.GetObjects("Win32_OperatingSystem", "BuildNumber, ProductType").Cast<ManagementObject>())
                     {
                         int buildNumber = int.Parse(osInfo["BuildNumber"]?.ToString());
-                        if (buildNumber < 16299)
+                        if (buildNumber < 14393)
                         {
-                            MessageBox.Show("Your Windows host is too old to use Discrete Device Assignment. Please consider to upgrade!", "Warning", MessageBoxButton.OK, MessageBoxImage.Warning);
+                            MessageBox.Show(
+                                "Your Windows host is too old to use Discrete Device Assignment. Please consider to upgrade!",
+                                "Warning",
+                                MessageBoxButton.OK,
+                                MessageBoxImage.Warning
+                            );
                         }
 
-                        string osName = osInfo["Caption"]?.ToString();
-                        if (!osName.Trim().ToLower().Contains("server"))
+                        UInt32 productType = (UInt32)osInfo["ProductType"];
+                        if (productType == (UInt32)1)
                         {
-                            MessageBox.Show("Your SKU of Windows may not support Discrete Device Assignment. Please use the \"Server\" SKU.", "Warning", MessageBoxButton.OK, MessageBoxImage.Warning);
+                            MessageBox.Show(
+                                "Your SKU of Windows may not support Discrete Device Assignment. Please use the \"Server\" SKU.",
+                                "Warning",
+                                MessageBoxButton.OK,
+                                MessageBoxImage.Warning
+                            );
                         }
                     }
                 });
@@ -407,6 +481,8 @@ namespace DDAGUI
 
         private async Task RefreshVMs()
         {
+            // Clear variables, then the GUI
+            vmObjects.Clear();
             VMList.Items.Clear();
             DevicePerVMList.Items.Clear();
 

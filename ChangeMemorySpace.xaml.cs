@@ -31,12 +31,22 @@ namespace DDAGUI
                 }
                 else
                 {
-                    MessageBox.Show("Make sure the Low MMIO Gap is in range (128, 3584) and High MMIO is larger than 4096", "Warning", MessageBoxButton.OK, MessageBoxImage.Warning);
+                    MessageBox.Show(
+                        "Make sure the Low MMIO Gap is in range (128, 3584) and High MMIO is larger than 4096",
+                        "Warning",
+                        MessageBoxButton.OK,
+                        MessageBoxImage.Warning
+                    );
                 }
             }
             else
             {
-                MessageBox.Show("Please enter a positive integer in both box.", "Warning", MessageBoxButton.OK, MessageBoxImage.Warning);
+                MessageBox.Show(
+                    "Please enter a positive integer in both box.",
+                    "Warning",
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Warning
+                );
             }
         }
 
