@@ -48,9 +48,7 @@ namespace DDAGUI
 
             if (userCredential.computerName != "")
             {
-                machine = (userCredential.computerName.Equals("localhost")) ?
-                    new MachineMethods() :
-                    new MachineMethods(userCredential);
+                machine = (string.Equals(userCredential.computerName, "localhost", StringComparison.OrdinalIgnoreCase)) ? new MachineMethods() : new MachineMethods(userCredential);
                 await ReinitializeConnection();
             }
         }
@@ -67,12 +65,13 @@ namespace DDAGUI
                 StatusBarChangeBehaviour(true, "Adding device");
 
                 AddDevice addDevice = new AddDevice(machine);
-                string deviceId = addDevice.GetDeviceId();
 
-                string vmName = VMList.SelectedItem.GetType().GetProperty("VMName").GetValue(VMList.SelectedItem, null).ToString();
-                try
+                string deviceId = addDevice.GetDeviceId();
+                string vmName = VMList.SelectedItem.GetType().GetProperty("VMName").GetValue(VMList.SelectedItem, null)?.ToString();
+                
+                if (deviceId != null && vmName != null)
                 {
-                    if (deviceId != null)
+                    try
                     {
                         await Task.Run(() =>
                         {
@@ -83,29 +82,28 @@ namespace DDAGUI
 
                         await RefreshVMs();
                     }
-                    else
+                    catch (Exception ex)
                     {
-                        StatusBarChangeBehaviour(false, "No Device Added");
+                        WMIDefaultValues.HandleException(ex, machine.GetComputerName());
+                        StatusBarChangeBehaviour(false, "Error, Re-enable device");
+
+                        try
+                        {
+                            await Task.Run(() =>
+                            {
+                                machine.ChangePnpDeviceBehaviour(deviceId, "Enable");
+                            });
+                        }
+                        catch (Exception exp)
+                        {
+                            WMIDefaultValues.HandleException(exp, machine.GetComputerName());
+                            StatusBarChangeBehaviour(false, "Re-enable device failed");
+                        }
                     }
                 }
-                catch (Exception ex)
+                else
                 {
-                    WMIDefaultValues.HandleException(ex, machine.GetComputerName());
-                    StatusBarChangeBehaviour(false, "Error, re-enabling device");
-
-                    // Re-enable target device
-                    try
-                    {
-                        await Task.Run(() =>
-                        {
-                            machine.ChangePnpDeviceBehaviour(deviceId, "Enable");
-                        });
-                    }
-                    catch (Exception exp)
-                    {
-                        WMIDefaultValues.HandleException(exp, machine.GetComputerName());
-                        StatusBarChangeBehaviour(false, "Re-enable device failed");
-                    }
+                    StatusBarChangeBehaviour(false, "No Device Added");
                 }
             }
             else
@@ -117,88 +115,6 @@ namespace DDAGUI
                     MessageBoxImage.Warning
                 );
                 StatusBarChangeBehaviour(false, "No Device Added");
-            }
-        }
-
-        private async void RemDevice_Click(object sender, RoutedEventArgs e)
-        {
-            try
-            {
-                if (VMList.SelectedItem != null && DevicePerVMList.SelectedItem != null)
-                {
-                    StatusBarChangeBehaviour(true, "Removing device");
-                    string deviceId = DevicePerVMList.SelectedItem.GetType().GetProperty("DeviceID").GetValue(DevicePerVMList.SelectedItem, null).ToString();
-                    string devicePath = DevicePerVMList.SelectedItem.GetType().GetProperty("DevicePath").GetValue(DevicePerVMList.SelectedItem, null).ToString();
-
-                    await Task.Run(() =>
-                    {
-                        machine.DismountFromVM(deviceId);
-                        machine.DismountPnPDeviceFromPcip(devicePath);
-                        machine.ChangePnpDeviceBehaviour(deviceId.Replace("PCIP\\", "PCI\\"), "Enable");
-                    });
-
-                    await RefreshVMs();
-                }
-                else
-                {
-                    MessageBox.Show(
-                        "Please select a device from the virtual machine List!",
-                        "Warning",
-                        MessageBoxButton.OK,
-                        MessageBoxImage.Warning
-                    );
-                    StatusBarChangeBehaviour(false, "No Device Selected");
-                }
-            }
-            catch (Exception ex)
-            {
-                WMIDefaultValues.HandleException(ex, machine.GetComputerName());
-                StatusBarChangeBehaviour(false, "Error");
-            }
-        }
-
-        private void CopyDevAddress_Click(object sender, RoutedEventArgs e)
-        {
-            if (VMList.SelectedItems != null && DevicePerVMList.SelectedItems != null)
-            {
-                try
-                {
-                    if (VMList.SelectedItem != null && DevicePerVMList.SelectedItem != null)
-                    {
-                        string devicePath = DevicePerVMList.SelectedItem.GetType().GetProperty("DevicePath").GetValue(DevicePerVMList.SelectedItem, null).ToString();
-                        Clipboard.SetText(devicePath);
-                        MessageBox.Show(
-                            $"Copied device Path {devicePath} into clipboard",
-                            "Info",
-                            MessageBoxButton.OK,
-                            MessageBoxImage.Information
-                        );
-                    }
-                    else
-                    {
-                        MessageBox.Show(
-                            "Please select a device from the virtual machine List!",
-                            "Warning",
-                            MessageBoxButton.OK,
-                            MessageBoxImage.Warning
-                        );
-                    }
-                }
-                catch (Exception ex)
-                {
-                    WMIDefaultValues.HandleException(ex, machine.GetComputerName());
-                    StatusBarChangeBehaviour(false, "Error");
-                }
-            }
-            else
-            {
-                MessageBox.Show(
-                    "Please select a virtual machine and a device!",
-                    "Warning",
-                    MessageBoxButton.OK,
-                    MessageBoxImage.Warning
-                );
-                StatusBarChangeBehaviour(false, "No Device Selected");
             }
         }
 
@@ -241,6 +157,77 @@ namespace DDAGUI
             }
         }
 
+        private async void RemDevice_Click(object sender, RoutedEventArgs e)
+        {
+            if (VMList.SelectedItem != null && DevicePerVMList.SelectedItem != null)
+            {
+                try
+                {
+                    StatusBarChangeBehaviour(true, "Removing device");
+                    string deviceId = DevicePerVMList.SelectedItem.GetType().GetProperty("DeviceID").GetValue(DevicePerVMList.SelectedItem, null)?.ToString();
+                    string devicePath = DevicePerVMList.SelectedItem.GetType().GetProperty("DevicePath").GetValue(DevicePerVMList.SelectedItem, null)?.ToString();
+
+                    if (deviceId != null && devicePath != null)
+                    {
+                        await Task.Run(() =>
+                        {
+                            machine.DismountFromVM(deviceId);
+                            machine.DismountPnPDeviceFromPcip(devicePath);
+                            machine.ChangePnpDeviceBehaviour(devicePath.Replace("PCIP\\", "PCI\\"), "Enable");
+                        });
+
+                        await RefreshVMs();
+                    }
+                }
+                catch (Exception ex)
+                {
+                    WMIDefaultValues.HandleException(ex, machine.GetComputerName());
+                    StatusBarChangeBehaviour(false, "Error");
+                }
+            }
+            else
+            {
+                MessageBox.Show(
+                    "Please select a device from the virtual machine list!",
+                    "Warning",
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Warning
+                );
+
+                StatusBarChangeBehaviour(false, "No Device Selected");
+            }
+        }
+
+        private void CopyDevAddress_Click(object sender, RoutedEventArgs e)
+        {
+            if (VMList.SelectedItem != null && DevicePerVMList.SelectedItem != null)
+            {
+                string devicePath = DevicePerVMList.SelectedItem.GetType().GetProperty("DevicePath").GetValue(DevicePerVMList.SelectedItem, null)?.ToString();
+
+                if (devicePath != null)
+                {
+                    Clipboard.SetText(devicePath);
+                    MessageBox.Show(
+                        $"Copied device Path {devicePath} into clipboard",
+                        "Info",
+                        MessageBoxButton.OK,
+                        MessageBoxImage.Information
+                    );
+                }
+            }
+            else
+            {
+                MessageBox.Show(
+                    "Please select a virtual machine and a device!",
+                    "Warning",
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Warning
+                );
+                StatusBarChangeBehaviour(false, "No Device Selected");
+            }
+        }
+
+
         private void HyperVServiceStatus_Click(object sender, RoutedEventArgs e)
         {
             HyperVStatus hyperVStatus = new HyperVStatus(machine);
@@ -271,34 +258,51 @@ namespace DDAGUI
                     await Task.Run(() =>
                     {
                         machine.Connect("root\\virtualization\\v2");
-                        ManagementObjectCollection devSettings = machine.GetObjects("Msvm_PciExpressSettingData", "InstanceID");
-                        ManagementObjectCollection devMount = machine.GetObjects("Msvm_PciExpress", "DeviceInstancePath");
-
-                        if (!(devSettings == null || devSettings.Count == 0))
+                        
+                        using (ManagementObjectCollection devSettings = machine.GetObjects("Msvm_PciExpressSettingData", "InstanceID"))
                         {
-                            foreach (ManagementObject deviceid in devSettings.Cast<ManagementObject>())
+                            if (!(devSettings == null || devSettings.Count == 0))
                             {
-                                string devInstanceId = deviceid["InstanceID"]?.ToString();
-
-                                if (devInstanceId == null || devInstanceId.Length == 0)
+                                foreach (ManagementObject deviceid in devSettings.Cast<ManagementObject>())
                                 {
-                                    continue;
-                                }
+                                    string devInstanceId = deviceid["InstanceID"]?.ToString();
 
-                                if (!devInstanceId.Contains("Microsoft:Definition"))
-                                {
-                                    machine.DismountFromVM(devInstanceId);
+                                    if (devInstanceId == null || devInstanceId.Length == 0)
+                                    {
+                                        deviceid.Dispose();
+                                        continue;
+                                    }
+
+                                    if (!devInstanceId.Contains("Microsoft:Definition"))
+                                    {
+                                        machine.DismountFromVM(devInstanceId);
+                                    }
+
+                                    deviceid.Dispose();
                                 }
                             }
                         }
 
-                        if (!(devMount == null || devMount.Count == 0))
+                        using (ManagementObjectCollection devMount = machine.GetObjects("Msvm_PciExpress", "DeviceInstancePath"))
                         {
-                            foreach (ManagementObject devInstancePath in devMount.Cast<ManagementObject>())
+                            if (!(devMount == null || devMount.Count == 0))
                             {
-                                string devInsPath = devInstancePath["DeviceInstancePath"].ToString();
-                                machine.DismountPnPDeviceFromPcip(devInsPath);
-                                machine.ChangePnpDeviceBehaviour(devInsPath.Replace("PCIP\\", "PCI\\"), "Enable");
+                                foreach (ManagementObject devInstancePath in devMount.Cast<ManagementObject>())
+                                {
+                                    string devInsPath = devInstancePath["DeviceInstancePath"]?.ToString();
+
+                                    if (devInsPath != null)
+                                    {
+                                        machine.DismountPnPDeviceFromPcip(devInsPath);
+                                        machine.ChangePnpDeviceBehaviour(devInsPath.Replace("PCIP\\", "PCI\\"), "Enable");
+                                        devInstancePath.Dispose();
+                                    }
+                                    else
+                                    {
+                                        devInstancePath.Dispose();
+                                        continue;
+                                    }
+                                }
                             }
                         }
                     });
@@ -334,12 +338,12 @@ namespace DDAGUI
             {
                 try
                 {
-                    string vmName = VMList.SelectedItem.GetType().GetProperty("VMName").GetValue(VMList.SelectedItem, null).ToString();
+                    string vmName = VMList.SelectedItem.GetType().GetProperty("VMName").GetValue(VMList.SelectedItem, null)?.ToString();
                     MessageBoxResult isEnableMemCache = MessageBox.Show(
-                            $"Do you want to enable guest control cache type for {vmName}? (Yes to enable, No to disable, Cancel to leave it as is)",
-                            "Enable Guest Control Cache",
-                            MessageBoxButton.YesNoCancel,
-                            MessageBoxImage.Question
+                        $"Do you want to enable guest control cache type for {vmName}? (Yes to enable, No to disable, Cancel to leave it as is)",
+                        "Enable Guest Control Cache",
+                        MessageBoxButton.YesNoCancel,
+                        MessageBoxImage.Question
                     );
 
                     if (isEnableMemCache == MessageBoxResult.Yes)
@@ -347,26 +351,28 @@ namespace DDAGUI
                         await Task.Run(() =>
                         {
                             machine.ChangeGuestCacheType(vmName, true);
-                            MessageBox.Show(
-                                $"Enabled guest control cache type successfully for {vmName}",
-                                "Info",
-                                MessageBoxButton.OK,
-                                MessageBoxImage.Information
-                            );
                         });
+
+                        MessageBox.Show(
+                            $"Enabled guest control cache type successfully for {vmName}",
+                            "Info",
+                            MessageBoxButton.OK,
+                            MessageBoxImage.Information
+                        );
                     }
                     else if (isEnableMemCache == MessageBoxResult.No)
                     {
                         await Task.Run(() =>
                         {
                             machine.ChangeGuestCacheType(vmName, false);
-                            MessageBox.Show(
+                        });
+
+                        MessageBox.Show(
                                 $"Disabled guest control cache type successfully for {vmName}",
                                 "Info",
                                 MessageBoxButton.OK,
                                 MessageBoxImage.Information
-                            );
-                        });
+                        );
                     }
 
                     await RefreshVMs();
@@ -393,28 +399,31 @@ namespace DDAGUI
             if (VMList.SelectedItem != null)
             {
                 DevicePerVMList.Items.Clear();
-                string vmId = VMList.SelectedItem.GetType().GetProperty("VMId").GetValue(VMList.SelectedItem, null).ToString();
-                await Task.Run(() =>
+                string vmId = VMList.SelectedItem.GetType().GetProperty("VMId").GetValue(VMList.SelectedItem, null)?.ToString();
+                if (vmId != null)
                 {
-                    foreach (KeyValuePair<string, (string vmName, string vmStatus, List<(string instanceId, string devInstancePath)> devices)> vmObject in vmObjects)
+                    await Task.Run(() =>
                     {
-                        if (vmObject.Key.Equals(vmId))
+                        foreach (KeyValuePair<string, (string vmName, string vmStatus, List<(string instanceId, string devInstancePath)> devices)> vmObject in vmObjects)
                         {
-                            foreach ((string instanceId, string devInstancePath) in vmObject.Value.devices)
+                            if (vmObject.Key.Equals(vmId))
                             {
-                                Dispatcher.Invoke(() =>
+                                foreach ((string instanceId, string devInstancePath) in vmObject.Value.devices)
                                 {
-                                    DevicePerVMList.Items.Add(new
+                                    Dispatcher.Invoke(() =>
                                     {
-                                        DeviceID = instanceId,
-                                        DevicePath = devInstancePath
+                                        DevicePerVMList.Items.Add(new
+                                        {
+                                            DeviceID = instanceId,
+                                            DevicePath = devInstancePath
+                                        });
                                     });
-                                });
+                                }
+                                break;
                             }
-                            break;
                         }
-                    }
-                });
+                    });
+                }
             }
         }
 
@@ -424,49 +433,42 @@ namespace DDAGUI
 
         private async Task ReinitializeConnection()
         {
+            bool isHyperVDisabled = true, isOSTooOld = true, isOSNotServer = true;
+
             StatusBarChangeBehaviour(true, "Connecting");
 
             try
             {
-
                 await Task.Run(() =>
                 {
-                    machine.Connect("root\\virtualization\\v2");
-                    ManagementObjectCollection hyerpvObjects = machine.GetObjects("Msvm_ComputerSystem", "*");
-                    if (hyerpvObjects == null || hyerpvObjects.Count == 0)
-                    {
-                        MessageBox.Show(
-                            $"Hyper-V is not present on {machine.GetComputerName()}. You can still control the Hyper-V server remotely.",
-                            "Warning",
-                            MessageBoxButton.OK,
-                            MessageBoxImage.Warning
-                        );
-                    }
-
                     machine.Connect("root\\cimv2");
                     foreach (ManagementObject osInfo in machine.GetObjects("Win32_OperatingSystem", "BuildNumber, ProductType").Cast<ManagementObject>())
                     {
-                        int buildNumber = int.Parse(osInfo["BuildNumber"]?.ToString());
-                        if (buildNumber < 14393)
+                        string osInfoBuildNumber = osInfo["BuildNumber"]?.ToString() ?? "";
+                        if (int.TryParse(osInfoBuildNumber, out int buildNumber))
                         {
-                            MessageBox.Show(
-                                "Your Windows host is too old to use Discrete Device Assignment. Please consider to upgrade!",
-                                "Warning",
-                                MessageBoxButton.OK,
-                                MessageBoxImage.Warning
-                            );
+                            if (buildNumber >= 14393)
+                            {
+                                isOSTooOld = false;
+                            }
                         }
 
-                        UInt32 productType = (UInt32)osInfo["ProductType"];
-                        if (productType == (UInt32)1)
+                        string productTypeStr = osInfo["ProductType"]?.ToString() ?? "";
+                        if (UInt32.TryParse(productTypeStr, out UInt32 productType))
                         {
-                            MessageBox.Show(
-                                "Your SKU of Windows may not support Discrete Device Assignment. Please use the \"Server\" SKU.",
-                                "Warning",
-                                MessageBoxButton.OK,
-                                MessageBoxImage.Warning
-                            );
+                            if (productType != (UInt32)1)
+                            {
+                                isOSNotServer = false;
+                            }
                         }
+                        break;
+                    }
+
+                    machine.Connect("root\\virtualization\\v2");
+                    ManagementObjectCollection hyerpvObjects = machine.GetObjects("Msvm_ComputerSystem", "*");
+                    if (hyerpvObjects != null && hyerpvObjects.Count != 0)
+                    {
+                        isHyperVDisabled = false;
                     }
                 });
             }
@@ -475,14 +477,44 @@ namespace DDAGUI
                 WMIDefaultValues.HandleException(ex, machine.GetComputerName());
                 StatusBarChangeBehaviour(false, "Error");
             }
+            finally
+            {
+                if (isHyperVDisabled)
+                {
+                    MessageBox.Show(
+                            $"Hyper-V is not present on {machine.GetComputerName()}. You can still control the Hyper-V server remotely.",
+                            "Warning",
+                            MessageBoxButton.OK,
+                            MessageBoxImage.Warning
+                        );
+                }
+
+                if (isOSTooOld)
+                {
+                    MessageBox.Show(
+                                    "Your Windows host is too old to use Discrete Device Assignment. Please consider to upgrade!",
+                                    "Warning",
+                                    MessageBoxButton.OK,
+                                    MessageBoxImage.Warning
+                                );
+                }
+
+                if (isOSNotServer)
+                {
+                    MessageBox.Show(
+                                "Your SKU of Windows may not support Discrete Device Assignment. Please use the \"Server\" SKU.",
+                                "Warning",
+                                MessageBoxButton.OK,
+                                MessageBoxImage.Warning
+                            );
+                }
+            }
 
             await RefreshVMs();
         }
 
         private async Task RefreshVMs()
         {
-            // Clear variables, then the GUI
-            vmObjects.Clear();
             VMList.Items.Clear();
             DevicePerVMList.Items.Clear();
 
@@ -492,28 +524,56 @@ namespace DDAGUI
             {
                 await Task.Run(() =>
                 {
+                    vmObjects.Clear();
+                    
                     machine.Connect("root\\virtualization\\v2");
-
                     foreach (ManagementObject vmInfo in machine.GetObjects("Msvm_ComputerSystem", "Caption, ElementName, EnabledState, Name").Cast<ManagementObject>())
                     {
-                        if (vmInfo["Caption"].ToString().Equals("Virtual Machine"))
+                        string vmInfoCaption = vmInfo["Caption"]?.ToString();
+                        string vmInfoName = vmInfo["Name"]?.ToString();
+                        string vmInfoElementName = vmInfo["ElementName"]?.ToString();
+                        UInt16 vmInfoState = (UInt16)vmInfo["EnabledState"];
+
+                        if (vmInfoCaption == null || vmInfoName == null || vmInfoElementName == null || vmInfoState > 10)
                         {
-                            vmObjects[vmInfo["Name"].ToString()] = (vmInfo["ElementName"].ToString(), WMIDefaultValues.vmStatusMap[int.Parse(vmInfo["EnabledState"]?.ToString() ?? "0")], new List<(string instanceId, string devInstancePath)>());
+                            continue;
+                        }
+
+                        if (vmInfoCaption.Equals("Virtual Machine"))
+                        {
+                            vmObjects[vmInfoName] = (vmInfoElementName, WMIDefaultValues.vmStatusMap[vmInfoState], new List<(string instanceId, string devInstancePath)>());
                         }
                     }
 
                     foreach (ManagementObject deviceid in machine.GetObjects("Msvm_PciExpressSettingData", "Caption, HostResource, InstanceID").Cast<ManagementObject>())
                     {
-                        if (deviceid["Caption"].ToString().Equals("PCI Express Port"))
-                        {
-                            string instanceId = deviceid["InstanceID"].ToString();
+                        string pciSettingCaption = deviceid["Caption"]?.ToString();
 
-                            string hostResources = ((string[])deviceid["HostResource"])[0];
+                        if (pciSettingCaption == null)
+                        {
+                            continue;
+                        }
+
+                        if (pciSettingCaption.Equals("PCI Express Port"))
+                        {
+                            string instanceId = deviceid["InstanceID"]?.ToString();
+
+                            if (instanceId == null)
+                            {
+                                continue;
+                            }
+
                             string[] payload = instanceId.Replace("Microsoft:", "").Split('\\');
+                            string[] hostResources = (string[])deviceid["HostResource"];
+                            
+                            if (hostResources == null || hostResources.Length == 0)
+                            {
+                                continue;
+                            }
 
                             if (vmObjects.ContainsKey(payload[0]))
                             {
-                                string devPath = Regex.Replace(((string[])hostResources.Split(','))[1], "DeviceID=\"Microsoft:[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-4[0-9a-fA-F]{3}-[89aAbB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}\\\\\\\\", "").Replace("\"", "").Replace("\\\\", "\\");
+                                string devPath = Regex.Replace(((string[])hostResources[0].Split(','))[1], "DeviceID=\"Microsoft:[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-4[0-9a-fA-F]{3}-[89aAbB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}\\\\\\\\", "").Replace("\"", "").Replace("\\\\", "\\");
                                 vmObjects[payload[0]].devices.Add((instanceId, devPath));
                             }
                         }
@@ -534,7 +594,6 @@ namespace DDAGUI
                 });
 
                 StatusBarChangeBehaviour(false, "Done");
-
             }
             catch (Exception ex)
             {

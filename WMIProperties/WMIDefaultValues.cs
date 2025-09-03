@@ -13,7 +13,7 @@ namespace DDAGUI.WMIProperties
     {
         public static string notAvailable = "N/A";
 
-        public static readonly Dictionary<int, string> vmStatusMap = new Dictionary<int, string>
+        public static readonly Dictionary<UInt16, string> vmStatusMap = new Dictionary<UInt16, string>
         {
             {0,  "Unknown" },
             {1,  "Other" },
@@ -48,9 +48,9 @@ namespace DDAGUI.WMIProperties
         {
 #if DEBUG
             MessageBox.Show(
-                ex.ToString(), 
-                $"Error on {machineName}", 
-                MessageBoxButton.OK, 
+                ex.ToString(),
+                $"Error on {machineName}",
+                MessageBoxButton.OK,
                 MessageBoxImage.Error
             );
 #else
