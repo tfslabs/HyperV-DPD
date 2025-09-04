@@ -1,6 +1,6 @@
 ﻿using System.Windows;
 
-namespace DDAGUI
+namespace TheFlightSims.HyperVDPD
 {
     public partial class App : Application
     {

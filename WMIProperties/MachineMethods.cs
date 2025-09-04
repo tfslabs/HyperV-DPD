@@ -3,7 +3,7 @@ using System.Linq;
 using System.Management;
 using System.Security;
 
-namespace DDAGUI.WMIProperties
+namespace TheFlightSims.HyperVDPD.WMIProperties
 {
     public class MachineMethods
     {

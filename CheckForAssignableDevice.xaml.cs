@@ -1,4 +1,4 @@
-﻿using DDAGUI.WMIProperties;
+﻿using TheFlightSims.HyperVDPD.WMIProperties;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -6,7 +6,7 @@ using System.Management;
 using System.Threading.Tasks;
 using System.Windows;
 
-namespace DDAGUI
+namespace TheFlightSims.HyperVDPD
 {
     public partial class CheckForAssignableDevice : Window
     {

@@ -7,7 +7,7 @@ using System.Runtime.InteropServices;
 using System.Management;
 #endif
 
-namespace DDAGUI.WMIProperties
+namespace TheFlightSims.HyperVDPD.WMIProperties
 {
     public static class WMIDefaultValues
     {

@@ -1,4 +1,4 @@
-﻿using DDAGUI.WMIProperties;
+﻿using TheFlightSims.HyperVDPD.WMIProperties;
 
 using System;
 using System.Collections.Generic;
@@ -9,7 +9,7 @@ using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Windows;
 
-namespace DDAGUI
+namespace TheFlightSims.HyperVDPD
 {
     public partial class MainWindow : Window
     {
