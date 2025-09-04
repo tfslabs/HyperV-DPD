@@ -68,7 +68,7 @@ namespace DDAGUI
 
                 string deviceId = addDevice.GetDeviceId();
                 string vmName = VMList.SelectedItem.GetType().GetProperty("VMName").GetValue(VMList.SelectedItem, null)?.ToString();
-                
+
                 if (deviceId != null && vmName != null)
                 {
                     try
@@ -258,16 +258,16 @@ namespace DDAGUI
                     await Task.Run(() =>
                     {
                         machine.Connect("root\\virtualization\\v2");
-                        
+
                         using (ManagementObjectCollection devSettings = machine.GetObjects("Msvm_PciExpressSettingData", "InstanceID"))
                         {
-                            if (!(devSettings == null || devSettings.Count == 0))
+                            if (devSettings != null)
                             {
                                 foreach (ManagementObject deviceid in devSettings.Cast<ManagementObject>())
                                 {
                                     string devInstanceId = deviceid["InstanceID"]?.ToString();
 
-                                    if (devInstanceId == null || devInstanceId.Length == 0)
+                                    if (devInstanceId == null)
                                     {
                                         deviceid.Dispose();
                                         continue;
@@ -285,7 +285,7 @@ namespace DDAGUI
 
                         using (ManagementObjectCollection devMount = machine.GetObjects("Msvm_PciExpress", "DeviceInstancePath"))
                         {
-                            if (!(devMount == null || devMount.Count == 0))
+                            if (devMount != null)
                             {
                                 foreach (ManagementObject devInstancePath in devMount.Cast<ManagementObject>())
                                 {
@@ -461,12 +461,15 @@ namespace DDAGUI
                                 isOSNotServer = false;
                             }
                         }
+
+                        osInfo.Dispose();
+
                         break;
                     }
 
                     machine.Connect("root\\virtualization\\v2");
                     ManagementObjectCollection hyerpvObjects = machine.GetObjects("Msvm_ComputerSystem", "*");
-                    if (hyerpvObjects != null && hyerpvObjects.Count != 0)
+                    if (hyerpvObjects != null)
                     {
                         isHyperVDisabled = false;
                     }
@@ -525,7 +528,7 @@ namespace DDAGUI
                 await Task.Run(() =>
                 {
                     vmObjects.Clear();
-                    
+
                     machine.Connect("root\\virtualization\\v2");
                     foreach (ManagementObject vmInfo in machine.GetObjects("Msvm_ComputerSystem", "Caption, ElementName, EnabledState, Name").Cast<ManagementObject>())
                     {
@@ -536,6 +539,7 @@ namespace DDAGUI
 
                         if (vmInfoCaption == null || vmInfoName == null || vmInfoElementName == null || vmInfoState > 10)
                         {
+                            vmInfo.Dispose();
                             continue;
                         }
 
@@ -543,6 +547,8 @@ namespace DDAGUI
                         {
                             vmObjects[vmInfoName] = (vmInfoElementName, WMIDefaultValues.vmStatusMap[vmInfoState], new List<(string instanceId, string devInstancePath)>());
                         }
+
+                        vmInfo.Dispose();
                     }
 
                     foreach (ManagementObject deviceid in machine.GetObjects("Msvm_PciExpressSettingData", "Caption, HostResource, InstanceID").Cast<ManagementObject>())
@@ -551,6 +557,7 @@ namespace DDAGUI
 
                         if (pciSettingCaption == null)
                         {
+                            deviceid.Dispose();
                             continue;
                         }
 
@@ -560,14 +567,16 @@ namespace DDAGUI
 
                             if (instanceId == null)
                             {
+                                deviceid.Dispose();
                                 continue;
                             }
 
                             string[] payload = instanceId.Replace("Microsoft:", "").Split('\\');
                             string[] hostResources = (string[])deviceid["HostResource"];
-                            
-                            if (hostResources == null || hostResources.Length == 0)
+
+                            if (hostResources == null)
                             {
+                                deviceid.Dispose();
                                 continue;
                             }
 
@@ -576,6 +585,8 @@ namespace DDAGUI
                                 string devPath = Regex.Replace(((string[])hostResources[0].Split(','))[1], "DeviceID=\"Microsoft:[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-4[0-9a-fA-F]{3}-[89aAbB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}\\\\\\\\", "").Replace("\"", "").Replace("\\\\", "\\");
                                 vmObjects[payload[0]].devices.Add((instanceId, devPath));
                             }
+
+                            deviceid.Dispose();
                         }
                     }
 

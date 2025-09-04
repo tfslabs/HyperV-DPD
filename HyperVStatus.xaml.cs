@@ -41,6 +41,7 @@ namespace DDAGUI
                 {
                     if (srv["Name"] == null || !WMIDefaultValues.serviceNames.Contains(srv["Name"].ToString()))
                     {
+                        srv.Dispose();
                         continue;
                     }
 
@@ -49,6 +50,8 @@ namespace DDAGUI
                         ServiceName = srv["Caption"]?.ToString() ?? "Unknown",
                         ServiceStatus = srv["State"]?.ToString() ?? "Unknown"
                     });
+
+                    srv.Dispose();
                 }
             }
             catch (Exception ex)

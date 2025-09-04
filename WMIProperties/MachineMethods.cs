@@ -89,24 +89,38 @@ namespace DDAGUI.WMIProperties
         {
             Connect("root\\virtualization\\v2");
 
+            UInt32 outParams = (UInt32)32768;
             ManagementObject vm = null;
 
             foreach (ManagementObject obj in GetObjects("Msvm_VirtualSystemSettingData", "*").Cast<ManagementObject>())
             {
-                if (obj["Caption"].ToString().Equals("Virtual Machine Settings") && !obj["InstanceID"].ToString().Contains("Microsoft:Definition"))
+                string objCaption = obj["Caption"]?.ToString();
+                string objInstanceId = obj["InstanceID"]?.ToString();
+
+                if (objCaption == null || objInstanceId == null)
+                {
+                    obj.Dispose();
+                    continue;
+                }
+
+                if (objCaption.Equals("Virtual Machine Settings") && !objInstanceId.Contains("Microsoft:Definition"))
                 {
                     string hostName = obj["ElementName"]?.ToString();
 
-                    if (hostName == null || hostName.Length == 0)
+                    if (hostName == null)
                     {
+                        obj.Dispose();
                         continue;
                     }
 
                     if (hostName.Equals(vmName))
                     {
                         vm = obj;
+                        break;
                     }
                 }
+
+                obj.Dispose();
             }
 
             if (vm == null)
@@ -114,13 +128,20 @@ namespace DDAGUI.WMIProperties
                 throw new ManagementException("ChangeGuestCacheType: Unable to get the virtual machine setting");
             }
 
-            vm["GuestControlledCacheTypes"] = (bool)(isEnableGuestControlCache);
-
-            ManagementObject srv = new ManagementClass(scope, new ManagementPath("Msvm_VirtualSystemManagementService"), null).GetInstances().Cast<ManagementObject>().FirstOrDefault() ?? throw new ManagementException("ChangeGuestCacheType: Assignment service is either not running or crashed");
-            UInt32 outParams = (UInt32)srv.InvokeMethod("ModifySystemSettings", new object[]
+            try
             {
-                vm.GetText(TextFormat.WmiDtd20)
-            });
+                vm["GuestControlledCacheTypes"] = (bool)(isEnableGuestControlCache);
+
+                ManagementObject srv = new ManagementClass(scope, new ManagementPath("Msvm_VirtualSystemManagementService"), null).GetInstances().Cast<ManagementObject>().FirstOrDefault() ?? throw new ManagementException("ChangeGuestCacheType: Assignment service is either not running or crashed");
+                outParams = (UInt32)srv.InvokeMethod("ModifySystemSettings", new object[]
+                {
+                    vm.GetText(TextFormat.WmiDtd20)
+                });
+            }
+            finally
+            {
+                vm?.Dispose();
+            }
 
             switch (outParams)
             {
@@ -141,7 +162,7 @@ namespace DDAGUI.WMIProperties
                 case (UInt32)4096:
                     throw new ManagementException("ChangeGuestCacheType: Method Parameters Checked but failed to Execute");
                 default:
-                    throw new ManagementException("ChangeGuestCacheType: Unknown error");
+                    throw new ManagementException($"ChangeGuestCacheType: Unknown error ({outParams})");
             }
         }
 
@@ -150,15 +171,26 @@ namespace DDAGUI.WMIProperties
             Connect("root\\virtualization\\v2");
 
             ManagementObject vm = null;
+            UInt32 outParams = (UInt32)32768;
 
             foreach (ManagementObject obj in GetObjects("Msvm_VirtualSystemSettingData", "*").Cast<ManagementObject>())
             {
-                if (obj["Caption"].ToString().Equals("Virtual Machine Settings") && !obj["InstanceID"].ToString().Contains("Microsoft:Definition"))
+                string objCaption = obj["Caption"]?.ToString();
+                string objInstanceId = obj["InstanceID"]?.ToString();
+
+                if (objCaption == null || objInstanceId == null)
+                {
+                    obj.Dispose();
+                    continue;
+                }
+
+                if (objCaption.Equals("Virtual Machine Settings") && !objInstanceId.Contains("Microsoft:Definition"))
                 {
                     string hostName = obj["ElementName"]?.ToString();
 
-                    if (hostName == null || hostName.Length == 0)
+                    if (hostName == null)
                     {
+                        obj.Dispose();
                         continue;
                     }
 
@@ -167,58 +199,85 @@ namespace DDAGUI.WMIProperties
                         vm = obj;
                     }
                 }
+
+                obj.Dispose();
             }
 
             if (vm == null)
             {
-                throw new ManagementException("ChangeGuestCacheType: Unable to get the virtual machine setting");
+                throw new ManagementException("ChangeMemAllocate: Unable to get the virtual machine setting");
             }
 
-            vm["LowMmioGapSize"] = lowMem;
-            vm["HighMmioGapSize"] = highMem;
-
-            ManagementObject srv = new ManagementClass(scope, new ManagementPath("Msvm_VirtualSystemManagementService"), null).GetInstances().Cast<ManagementObject>().FirstOrDefault() ?? throw new ManagementException("ChangeGuestCacheType: Assignment service is either not running or crashed");
-            UInt32 outParams = (UInt32)srv.InvokeMethod("ModifySystemSettings", new object[]
+            try
             {
-                vm.GetText(TextFormat.WmiDtd20)
-            });
+                vm["LowMmioGapSize"] = (UInt64)lowMem;
+                vm["HighMmioGapSize"] = (UInt64)highMem;
+
+                ManagementObject srv = new ManagementClass(scope, new ManagementPath("Msvm_VirtualSystemManagementService"), null).GetInstances().Cast<ManagementObject>().FirstOrDefault() ?? throw new ManagementException("ChangeMemAllocate: Assignment service is either not running or crashed");
+                outParams = (UInt32)srv.InvokeMethod("ModifySystemSettings", new object[]
+                {
+                    vm.GetText(TextFormat.WmiDtd20)
+                });
+            }
+            finally
+            {
+                vm?.Dispose();
+            }
 
             switch (outParams)
             {
                 case (UInt32)0:
                     break;
                 case (UInt32)1:
-                    throw new ManagementException("ChangeGuestCacheType: Not Supported");
+                    throw new ManagementException("ChangeMemAllocate: Not Supported");
                 case (UInt32)2:
-                    throw new ManagementException("ChangeGuestCacheType: Failed");
+                    throw new ManagementException("ChangeMemAllocate: Failed");
                 case (UInt32)3:
-                    throw new ManagementException("ChangeGuestCacheType: Timed out");
+                    throw new ManagementException("ChangeMemAllocate: Timed out");
                 case (UInt32)4:
-                    throw new ManagementException("ChangeGuestCacheType: Invalid Parameter");
+                    throw new ManagementException("ChangeMemAllocate: Invalid Parameter");
                 case (UInt32)5:
-                    throw new ManagementException("ChangeGuestCacheType: Invalid State");
+                    throw new ManagementException("ChangeMemAllocate: Invalid State");
                 case (UInt32)6:
-                    throw new ManagementException("ChangeGuestCacheType: Incompatible Parameters");
+                    throw new ManagementException("ChangeMemAllocate: Incompatible Parameters");
                 case (UInt32)4096:
-                    throw new ManagementException("ChangeGuestCacheType: Method Parameters Checked but failed to Execute");
+                    throw new ManagementException("ChangeMemAllocate: Method Parameters Checked but failed to Execute");
                 default:
-                    throw new ManagementException("ChangeGuestCacheType: Unknown error");
+                    throw new ManagementException($"ChangeMemAllocate: Unknown error ({outParams})");
             }
         }
 
         public void ChangePnpDeviceBehaviour(string deviceID, string behaviourMethod)
         {
-            Connect("root\\cimv2");
-            foreach (ManagementObject deviceSearcher in GetObjects("Win32_PnPEntity", "DeviceId").Cast<ManagementObject>())
+            if (behaviourMethod == "Disable" || behaviourMethod == "Enable")
             {
-                if (deviceSearcher["DeviceId"].ToString().Equals(deviceID))
+                Connect("root\\cimv2");
+                foreach (ManagementObject deviceSearcher in GetObjects("Win32_PnPEntity", "DeviceId").Cast<ManagementObject>())
                 {
-                    try
+                    string devSearcherId = deviceSearcher["DeviceId"]?.ToString();
+
+                    if (devSearcherId == null)
                     {
-                        _ = (UInt32)deviceSearcher.InvokeMethod(behaviourMethod, new object[] { });
+                        deviceSearcher.Dispose();
+                        continue;
                     }
-                    catch (IndexOutOfRangeException) { }
-                    break;
+
+                    if (devSearcherId.Equals(deviceID))
+                    {
+                        try
+                        {
+                            _ = (UInt32)deviceSearcher.InvokeMethod(behaviourMethod, new object[] { });
+                        }
+                        catch (IndexOutOfRangeException) { }
+                        finally
+                        {
+                            deviceSearcher.Dispose();
+                        }
+
+                        break;
+                    }
+
+                    deviceSearcher.Dispose();
                 }
             }
         }
@@ -227,18 +286,28 @@ namespace DDAGUI.WMIProperties
         {
             Connect("root\\virtualization\\v2");
 
-            ManagementObject setting = (new ManagementClass(scope, new ManagementPath("Msvm_AssignableDeviceDismountSettingData"), null)).CreateInstance();
+            UInt32 outObj = (UInt32)32768;
 
-            setting["DeviceInstancePath"] = deviceID;
-            setting["DeviceLocationPath"] = string.Empty;
-            setting["RequireAcsSupport"] = false;
-            setting["RequireDeviceMitigations"] = false;
-
+            ManagementObject setting = ((new ManagementClass(scope, new ManagementPath("Msvm_AssignableDeviceDismountSettingData"), null))?.CreateInstance()) ?? throw new ManagementException("MountPnPDeviceToPcip: Unable to get the setting class");
             ManagementObject srv = new ManagementClass(scope, new ManagementPath("Msvm_AssignableDeviceService"), null).GetInstances().Cast<ManagementObject>().FirstOrDefault() ?? throw new ManagementException("MountPnPDeviceToPcip: Assignment service is either not running or crashed");
 
-            uint outObj = (uint)srv.InvokeMethod("DismountAssignableDevice", new object[] {
-                setting.GetText(TextFormat.WmiDtd20)
-            });
+            try
+            {
+                // Msvm_AssignableDeviceDismountSettingData
+                setting["DeviceInstancePath"] = (string.IsNullOrEmpty(deviceID)) ? (string)string.Empty : (string)deviceID;
+                setting["DeviceLocationPath"] = (string)string.Empty;
+                setting["RequireAcsSupport"] = (bool)false;
+                setting["RequireDeviceMitigations"] = (bool)false;
+
+                outObj = (UInt32)srv.InvokeMethod("DismountAssignableDevice", new object[] {
+                    setting.GetText(TextFormat.WmiDtd20)
+                });
+            }
+            finally
+            {
+                srv?.Dispose();
+                setting?.Dispose();
+            }
 
             switch (outObj)
             {
@@ -269,7 +338,7 @@ namespace DDAGUI.WMIProperties
                 case (UInt32)32779:
                     throw new ManagementException("MountPnPDeviceToPcip: File not found");
                 default:
-                    throw new ManagementException("Unknow error in method MountPnPDeviceToPcip");
+                    throw new ManagementException($"Unknow error in method MountPnPDeviceToPcip ({outObj})");
             }
         }
 
@@ -278,14 +347,31 @@ namespace DDAGUI.WMIProperties
             Connect("root\\virtualization\\v2");
 
             string deviceLocation = string.Empty;
+            UInt32 virtv2_outparams = (UInt32)32768;
 
             foreach (ManagementObject obj in GetObjects("Msvm_PciExpress", "*").Cast<ManagementObject>())
             {
-                if (obj["DeviceInstancePath"].ToString().Equals(devicePath))
+                string devInstancePath = obj["DeviceInstancePath"]?.ToString();
+
+                if (devInstancePath == null)
                 {
-                    deviceLocation = obj["LocationPath"].ToString();
-                    break;
+                    obj.Dispose();
+                    continue;
                 }
+
+                if (devInstancePath.Equals(devicePath))
+                {
+                    string devLoc = obj["LocationPath"]?.ToString();
+
+                    if (devLoc != null)
+                    {
+                        deviceLocation = devLoc;
+                        obj.Dispose();
+                        break;
+                    }
+                }
+
+                obj.Dispose();
             }
 
             if (deviceLocation == string.Empty)
@@ -294,11 +380,19 @@ namespace DDAGUI.WMIProperties
             }
 
             ManagementObject srv = new ManagementClass(scope, new ManagementPath("Msvm_AssignableDeviceService"), null).GetInstances().Cast<ManagementObject>().FirstOrDefault() ?? throw new ManagementException("DismountPnPDeviceFromPcip: Assignment service is either not running or crashed");
-            UInt32 virtv2_outparams = (UInt32)srv.InvokeMethod("MountAssignableDevice", new object[]
+
+            try
             {
-                devicePath,
-                deviceLocation
-            });
+                virtv2_outparams = (UInt32)srv.InvokeMethod("MountAssignableDevice", new object[]
+                {
+                    devicePath,
+                    deviceLocation
+                });
+            }
+            finally
+            {
+                srv?.Dispose();
+            }
 
             switch (virtv2_outparams)
             {
@@ -331,7 +425,7 @@ namespace DDAGUI.WMIProperties
                 case (UInt32)32779:
                     throw new ManagementException("DismountPnPDeviceFromPcip: File not found");
                 default:
-                    throw new ManagementException("Unknow error in method DismountPnPDeviceFromPcip");
+                    throw new ManagementException($"Unknow error in method DismountPnPDeviceFromPcip ({virtv2_outparams})");
             }
         }
 
@@ -341,16 +435,35 @@ namespace DDAGUI.WMIProperties
 
             ManagementObject vmCurrentSetting = null;
             ManagementObject setting = (new ManagementClass(scope, new ManagementPath("Msvm_PciExpressSettingData"), null)).CreateInstance();
+            ManagementObject srv = new ManagementClass(scope, new ManagementPath("Msvm_VirtualSystemManagementService"), null).GetInstances().Cast<ManagementObject>().FirstOrDefault() ?? throw new ManagementException("MountIntoVM: Assignment service is either not running or crashed");
+
+            UInt32 outParams = (UInt32)32768;
             string hostRes = string.Empty, vmRes = string.Empty;
 
             foreach (ManagementObject device in GetObjects("Msvm_PciExpress", "*").Cast<ManagementObject>())
             {
-                if (device["DeviceInstancePath"].ToString().Contains(deviceId.Replace("PCI\\", "PCIP\\")))
+                string devInstancePath = device["DeviceInstancePath"]?.ToString();
+
+                if (devInstancePath == null)
                 {
-                    string hostName = device["SystemName"].ToString();
-                    string deviceIdPnP = device["DeviceId"].ToString().Replace("\\", "\\\\");
-                    hostRes = $"\\\\{hostName}\\root\\virtualization\\v2:Msvm_PciExpress.CreationClassName=\"Msvm_PciExpress\",DeviceID=\"{deviceIdPnP}\",SystemCreationClassName=\"Msvm_ComputerSystem\",SystemName=\"{hostName}\"";
-                    break;
+                    device.Dispose();
+                    continue;
+                }
+
+                if (devInstancePath.Contains(deviceId.Replace("PCI\\", "PCIP\\")))
+                {
+                    string hostName = device["SystemName"]?.ToString();
+                    string deviceIdPnP = device["DeviceId"]?.ToString();
+
+                    if (hostName != null || deviceIdPnP != null)
+                    {
+                        deviceIdPnP = deviceIdPnP.Replace("\\", "\\\\");
+                        hostRes = $"\\\\{hostName}\\root\\virtualization\\v2:Msvm_PciExpress.CreationClassName=\"Msvm_PciExpress\",DeviceID=\"{deviceIdPnP}\",SystemCreationClassName=\"Msvm_ComputerSystem\",SystemName=\"{hostName}\"";
+                        device.Dispose();
+                        break;
+                    }
+
+                    device.Dispose();
                 }
             }
             if (hostRes == String.Empty)
@@ -360,12 +473,22 @@ namespace DDAGUI.WMIProperties
 
             foreach (ManagementObject vmSetting in GetObjects("Msvm_VirtualSystemSettingData", "*").Cast<ManagementObject>())
             {
-                if (vmSetting["Caption"].ToString().Equals("Virtual Machine Settings") && !vmSetting["InstanceID"].ToString().Contains("Microsoft:Definition"))
+                string vmCaption = vmSetting["Caption"]?.ToString();
+                string vmInstanceID = vmSetting["InstanceID"]?.ToString();
+
+                if (vmCaption == null || vmInstanceID == null)
+                {
+                    vmSetting.Dispose();
+                    continue;
+                }
+
+                if (vmCaption.Equals("Virtual Machine Settings") && !vmInstanceID.Contains("Microsoft:Definition"))
                 {
                     string hostName = vmSetting["ElementName"]?.ToString();
 
-                    if (hostName == null || hostName.Length == 0)
+                    if (hostName == null)
                     {
+                        vmSetting.Dispose();
                         continue;
                     }
 
@@ -373,6 +496,7 @@ namespace DDAGUI.WMIProperties
                     {
                         vmRes = $"{vmSetting["InstanceID"]}\\{Guid.NewGuid().ToString().ToUpper()}";
                         vmCurrentSetting = vmSetting;
+                        vmSetting.Dispose();
                         break;
                     }
 
@@ -387,44 +511,51 @@ namespace DDAGUI.WMIProperties
                 throw new ManagementException("MountIntoVM: Unable to get setting for VM");
             }
 
-            // CIM_SettingData
-            setting["Caption"] = "PCI Express Port";
-            setting["Description"] = "Microsoft Virtual PCI Express Port Setting Data";
-            setting["InstanceID"] = vmRes;
-            setting["ElementName"] = "PCI Express Port";
-
-            // CIM_ResourceAllocationSettingData
-            setting["ResourceType"] = (UInt16)32769;
-            setting["OtherResourceType"] = null;
-            setting["ResourceSubType"] = "Microsoft:Hyper-V:Virtual Pci Express Port";
-            setting["PoolID"] = String.Empty;
-            setting["ConsumerVisibility"] = (UInt16)3;
-            setting["HostResource"] = new string[] { hostRes };
-            setting["AllocationUnits"] = "count";
-            setting["VirtualQuantity"] = (UInt64)1;
-            setting["Reservation"] = (UInt64)1;
-            setting["Limit"] = (UInt64)1;
-            setting["Weight"] = (UInt32)0;
-            setting["AutomaticAllocation"] = true;
-            setting["AutomaticDeallocation"] = true;
-            setting["Parent"] = null;
-            setting["Connection"] = null;
-            setting["Address"] = String.Empty;
-            setting["MappingBehavior"] = null;
-            setting["AddressOnParent"] = String.Empty;
-            setting["VirtualQuantityUnits"] = "count";
-
-            // Msvm_PciExpressSettingData
-            setting["VirtualFunctions"] = new UInt16[] { 0 };
-            setting["VirtualSystemIdentifiers"] = new string[] { "{" + Guid.NewGuid() + "}" };
-
-            ManagementObject srv = new ManagementClass(scope, new ManagementPath("Msvm_VirtualSystemManagementService"), null).GetInstances().Cast<ManagementObject>().FirstOrDefault() ?? throw new ManagementException("MountIntoVM: Assignment service is either not running or crashed");
-
-            UInt32 outParams = (UInt32)srv.InvokeMethod("AddResourceSettings", new object[]
+            try
             {
-                vmCurrentSetting,
-                new string[] { setting.GetText(TextFormat.WmiDtd20) }
-            });
+                // CIM_SettingData
+                setting["Caption"] = "PCI Express Port";
+                setting["Description"] = "Microsoft Virtual PCI Express Port Setting Data";
+                setting["InstanceID"] = vmRes;
+                setting["ElementName"] = "PCI Express Port";
+
+                // CIM_ResourceAllocationSettingData
+                setting["ResourceType"] = (UInt16)32769;
+                setting["OtherResourceType"] = null;
+                setting["ResourceSubType"] = "Microsoft:Hyper-V:Virtual Pci Express Port";
+                setting["PoolID"] = String.Empty;
+                setting["ConsumerVisibility"] = (UInt16)3;
+                setting["HostResource"] = new string[] { hostRes };
+                setting["AllocationUnits"] = "count";
+                setting["VirtualQuantity"] = (UInt64)1;
+                setting["Reservation"] = (UInt64)1;
+                setting["Limit"] = (UInt64)1;
+                setting["Weight"] = (UInt32)0;
+                setting["AutomaticAllocation"] = true;
+                setting["AutomaticDeallocation"] = true;
+                setting["Parent"] = null;
+                setting["Connection"] = null;
+                setting["Address"] = String.Empty;
+                setting["MappingBehavior"] = null;
+                setting["AddressOnParent"] = String.Empty;
+                setting["VirtualQuantityUnits"] = "count";
+
+                // Msvm_PciExpressSettingData
+                setting["VirtualFunctions"] = new UInt16[] { 0 };
+                setting["VirtualSystemIdentifiers"] = new string[] { "{" + Guid.NewGuid() + "}" };
+
+
+                outParams = (UInt32)srv.InvokeMethod("AddResourceSettings", new object[]
+                {
+                    vmCurrentSetting,
+                    new string[] { setting.GetText(TextFormat.WmiDtd20) }
+                });
+            }
+            finally
+            {
+                setting?.Dispose();
+                srv?.Dispose();
+            }
 
             switch (outParams)
             {
@@ -443,7 +574,7 @@ namespace DDAGUI.WMIProperties
                 case (UInt32)4097:
                     throw new ManagementException("MountIntoVM: The function may not be called or is reserved for vendor");
                 default:
-                    throw new ManagementException("MountIntoVM: Unknown error");
+                    throw new ManagementException($"MountIntoVM: Unknown error ({outParams})");
             }
         }
 
@@ -452,26 +583,42 @@ namespace DDAGUI.WMIProperties
             Connect("root\\virtualization\\v2");
 
             ManagementObject[] deviceObj = new ManagementObject[1];
+            ManagementObject srv = new ManagementClass(scope, new ManagementPath("Msvm_VirtualSystemManagementService"), null).GetInstances().Cast<ManagementObject>().FirstOrDefault() ?? throw new ManagementException("DismountFromVM: Assignment service is either not running or crashed");
+            UInt32 outParams = (UInt32)32768;
 
             foreach (ManagementObject obj in GetObjects("Msvm_PciExpressSettingData", "*").Cast<ManagementObject>())
             {
-                if (obj["InstanceID"].ToString().Equals(deviceId))
+                string objInstanceId = obj["InstanceID"]?.ToString();
+
+                if (objInstanceId != null)
                 {
-                    deviceObj[0] = obj;
-                    break;
+                    if (objInstanceId.Equals(deviceId))
+                    {
+                        deviceObj[0] = obj;
+                        obj.Dispose();
+                        break;
+                    }
                 }
+
+                obj.Dispose();
             }
 
-            if (deviceObj == null)
+            if (deviceObj[0] == null)
             {
                 throw new ManagementException("DismountFromVM: Error while finding the device ID");
             }
 
-            ManagementObject srv = new ManagementClass(scope, new ManagementPath("Msvm_VirtualSystemManagementService"), null).GetInstances().Cast<ManagementObject>().FirstOrDefault() ?? throw new ManagementException("DismountFromVM: Assignment service is either not running or crashed");
-            UInt32 outParams = (UInt32)srv.InvokeMethod("RemoveResourceSettings", new object[]
+            try
             {
-                deviceObj
-            });
+                outParams = (UInt32)srv.InvokeMethod("RemoveResourceSettings", new object[]
+                {
+                    deviceObj
+                });
+            }
+            finally
+            {
+                srv?.Dispose();
+            }
 
             switch (outParams)
             {
@@ -490,7 +637,7 @@ namespace DDAGUI.WMIProperties
                 case (UInt32)6:
                     throw new ManagementException("DismountFromVM: Method Parameters Checked but failed to Execute");
                 default:
-                    throw new ManagementException("DismountFromVM: Unknown error");
+                    throw new ManagementException($"DismountFromVM: Unknown error ({outParams})");
             }
         }
     }

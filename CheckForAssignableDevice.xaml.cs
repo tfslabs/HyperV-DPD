@@ -48,18 +48,35 @@ namespace DDAGUI
 
                     foreach (ManagementObject device in machine.GetObjects("Win32_PnPEntity", "DeviceID, Caption, Status").Cast<ManagementObject>())
                     {
-                        if (device["DeviceID"].ToString().StartsWith("PCI\\"))
+                        string deviceId = device["DeviceID"]?.ToString();
+                        string devCaption = device["Caption"]?.ToString();
+                        string devStatus = device["Status"]?.ToString();
+
+                        if (deviceId == null || devCaption == null || devStatus == null)
+                        {
+                            device.Dispose();
+                            continue;
+                        }
+
+                        if (deviceId.StartsWith("PCI\\"))
                         {
                             bool isAssignable = true;
-                            string deviceId = device["DeviceID"].ToString();
-                            string deviceName = device["Caption"].ToString();
                             HashSet<string> startingAddresses = new HashSet<string>();
                             string deviceNote = string.Empty;
                             double memoryGap = 0;
 
                             foreach (ManagementObject actualPnPDevice in machine.GetObjects("Win32_PnPDevice", "SameElement, SystemElement").Cast<ManagementObject>())
                             {
-                                if (actualPnPDevice["SystemElement"].ToString().Contains(deviceId.Replace("\\", "\\\\")))
+                                string actualPnpDevString = actualPnPDevice["SystemElement"]?.ToString();
+
+                                if (actualPnpDevString == null)
+                                {
+                                    isAssignable = false;
+                                    actualPnPDevice.Dispose();
+                                    continue;
+                                }
+
+                                if (actualPnpDevString.Contains(deviceId.Replace("\\", "\\\\")))
                                 {
                                     isAssignable = true;
                                     break;
@@ -77,13 +94,23 @@ namespace DDAGUI
 
                             foreach (ManagementObject deviceResource in machine.GetObjects("Win32_PNPAllocatedResource", "Antecedent, Dependent").Cast<ManagementObject>())
                             {
-                                if (deviceResource["Dependent"].ToString().Contains(deviceId.Replace("\\", "\\\\")))
+                                string devResDependent = deviceResource["Dependent"]?.ToString();
+
+                                if (devResDependent == null)
+                                {
+                                    deviceResource.Dispose();
+                                    continue;
+                                }
+
+                                if (devResDependent.Contains(deviceId.Replace("\\", "\\\\")))
                                 {
                                     startingAddresses.Add((((string[])deviceResource["Antecedent"].ToString().Split('='))[1]).Replace("\"", ""));
                                 }
+
+                                deviceResource.Dispose();
                             }
 
-                            if (!device["Status"].ToString().ToLower().Equals("ok"))
+                            if (!devStatus.ToLower().Equals("ok"))
                             {
                                 deviceNote += ((deviceNote.Length == 0) ? "" : "\n") + "Device is disabled. Please re-enable the device to let the program check the memory gap.";
                                 isAssignable = false;
@@ -93,10 +120,21 @@ namespace DDAGUI
                             {
                                 foreach (ManagementObject deviceMem in machine.GetObjects("Win32_DeviceMemoryAddress", "StartingAddress, EndingAddress").Cast<ManagementObject>())
                                 {
-                                    if (startingAddresses.Contains(deviceMem["StartingAddress"].ToString()))
+                                    string startAddrString = deviceMem["StartingAddress"]?.ToString();
+                                    string endAddrString = deviceMem["EndingAddress"]?.ToString();
+
+                                    if (startAddrString == null || endAddrString == null)
                                     {
-                                        memoryGap += Math.Ceiling((Double.Parse(deviceMem["EndingAddress"].ToString()) - Double.Parse(deviceMem["StartingAddress"].ToString())) / 1048576.0);
+                                        deviceMem.Dispose();
+                                        continue;
                                     }
+
+                                    if (startingAddresses.Contains(startAddrString))
+                                    {
+                                        memoryGap += Math.Ceiling((Double.Parse(endAddrString) - Double.Parse(startAddrString)) / 1048576.0);
+                                    }
+
+                                    deviceMem.Dispose();
                                 }
                             }
 
@@ -105,12 +143,14 @@ namespace DDAGUI
                                 AssignableDevice_ListView.Items.Add(new
                                 {
                                     DeviceId = deviceId,
-                                    DeviceName = deviceName,
+                                    DeviceName = devCaption,
                                     DeviceGap = (!isAssignable) ? WMIDefaultValues.notAvailable : $"{memoryGap} MB",
                                     DeviceNote = deviceNote
                                 });
                             });
                         }
+
+                        device.Dispose();
                     }
                 });
             }
