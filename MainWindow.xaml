@@ -1,0 +1,143 @@
+﻿<Window 
+    x:Name="MainWindowName"
+    x:Class="TheFlightSims.HyperVDPD.MainWindow"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    Title="Hyper-V DPD" 
+    Height="Auto"
+    SizeToContent="WidthAndHeight"
+    ResizeMode="NoResize"
+    mc:Ignorable="d"
+    Icon="/main.ico" WindowStartupLocation="CenterScreen">
+    <Grid Width="800">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="9*"/>
+            <RowDefinition Height="165*"/>
+            <RowDefinition Height="13*"/>
+            <RowDefinition Height="10*"/>
+            <RowDefinition Height="8*"/>
+        </Grid.RowDefinitions>
+        <StackPanel x:Name="MainWindowHeader" Grid.Row="0">
+            <Menu IsMainMenu="True">
+                <MenuItem x:Name="_MenuItemFile" Header="_File" >
+                    <MenuItem Click="ConnectToAnotherComputer_Button" Header="Connect to _Another Computer" />
+                    <MenuItem Click="QuitMainWindow_Click" Header="_Exit" />
+                </MenuItem>
+                <MenuItem x:Name="_MenuItemDDA" Header="Discrete Device Assignment">
+                    <MenuItem Click="AddDevice_Click" Header="_Add Device"/>
+                    <MenuItem Click="RemDevice_Click" Header="_Remove Device" />
+                    <MenuItem Click="CopyDevAddress_Click" Header="Copy Device Address" />
+                    <Separator />
+                    <MenuItem Click="ChangeCacheTypes_Click" Header="_Change virtual machine Cache Types"/>
+                    <MenuItem Click="ChangeMemLocation_Click" Header="_Change Memory Space" />
+                </MenuItem>
+                <MenuItem x:Name="_MenuItemHVService" Header="_Hyper-V Global Settings" >
+                    <MenuItem Click="HyperVServiceStatus_Click" Header="_Check Hyper-V Status" />
+                    <MenuItem Click="AssignableDevice_Click" Header="_Check for Assignable Devices" />
+                    <MenuItem Click="RemAllDevice_Click" Header="_Remove All Assigned Devices" />
+                </MenuItem>
+                <MenuItem x:Name="_MenuItemView" Header="_View">
+                    <MenuItem Click="HyperVRefresh_Click" Header="_Refresh" />
+                </MenuItem>
+                <MenuItem x:Name="_MenuItemHelp" Header="_Help">
+                    <MenuItem Click="AboutBox_Click" Header="_About" />
+                </MenuItem>
+            </Menu>
+        </StackPanel>
+        <Grid Grid.Row="1">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="*" />
+            </Grid.ColumnDefinitions>
+            <Grid.Margin>
+                <Thickness Left="5" Right="5" Top="5" Bottom="5"></Thickness>
+            </Grid.Margin>
+            <Grid Grid.Column="0">
+                <Grid.RowDefinitions>
+                    <RowDefinition/>
+                    <RowDefinition Height="300"/>
+                </Grid.RowDefinitions>
+                <Label HorizontalAlignment="Left" VerticalAlignment="Center" Grid.Row="0" Content="Virtual Machine List" />
+                <ListView x:Name="VMList" Grid.Row="1" SelectionChanged="VMList_Select">
+                    <ListView.View>
+                        <GridView>
+                            <GridViewColumn Header="ID" DisplayMemberBinding="{Binding VMId}" Width="150"/>
+                            <GridViewColumn Header="Name" DisplayMemberBinding="{Binding VMName}" Width="150"/>
+                            <GridViewColumn Header="Status" DisplayMemberBinding="{Binding VMStatus}" Width="80"/>
+                        </GridView>
+                    </ListView.View>
+                </ListView>
+            </Grid>
+            <Grid Grid.Column="1">
+                <Grid.Margin>
+                    <Thickness Left="5" Right="5"></Thickness>
+                </Grid.Margin>
+                <Grid.RowDefinitions>
+                    <RowDefinition/>
+                    <RowDefinition Height="300"/>
+                </Grid.RowDefinitions>
+                <Label HorizontalAlignment="Left" VerticalAlignment="Center" Content="Assigned Device List" Grid.Row="0"/>
+                <ListView x:Name="DevicePerVMList" Grid.Row="1">
+                    <ListView.View>
+                        <GridView>
+                            <GridViewColumn Header="Device Instance ID" DisplayMemberBinding="{Binding DeviceID}" Width="170"/>
+                            <GridViewColumn Header="Device Instance Path" DisplayMemberBinding="{Binding DevicePath}" Width="200"/>
+                        </GridView>
+                    </ListView.View>
+                </ListView>
+            </Grid>
+        </Grid>
+        <Grid Grid.Row="2">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="*" />
+            </Grid.ColumnDefinitions>
+            <Grid.Margin>
+                <Thickness Left="5" Right="5" Top="5" Bottom="5"></Thickness>
+            </Grid.Margin>
+            <Grid Grid.Column="0">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+                <Button Grid.Column="0" Click="ChangeCacheTypes_Click" Content="Change virtual machine Cache Type" HorizontalAlignment="Left" VerticalAlignment="Center" Margin="0,0,5,0" Padding="3,0,3,0" />
+                <Button Grid.Column="1" Click="ChangeMemLocation_Click" Content="Change Memory Space" HorizontalAlignment="Left" VerticalAlignment="Center" Margin="5,0,5,0" Padding="3,0,3,0" />
+            </Grid>
+            <Grid Grid.Column="1">
+                <Grid.Margin>
+                    <Thickness Left="5" Right="5"></Thickness>
+                </Grid.Margin>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+                <Button Grid.Column="0" Click="AddDevice_Click" Content="Add Device" HorizontalAlignment="Left" VerticalAlignment="Center" Margin="0,0,5,0"  Padding="3,0,3,0" />
+                <Button Grid.Column="1" Click="RemDevice_Click" Content="Remove Device" HorizontalAlignment="Left" VerticalAlignment="Center" Margin="0,0,5,0" Padding="3,0,3,0"/>
+                <Button Grid.Column="2" Click="CopyDevAddress_Click" Content="Copy Device Address" HorizontalAlignment="Left" VerticalAlignment="Center" Margin="0,0,5,0"  Padding="3,0,3,0" />
+            </Grid>
+        </Grid>
+        <Grid Grid.Row="3">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="Auto"/>
+            </Grid.ColumnDefinitions>
+            <Grid.Margin>
+                <Thickness Left="5" Right="5" Top="5" Bottom="5"></Thickness>
+            </Grid.Margin>
+            <Button Grid.Column="0" Click="HyperVServiceStatus_Click" Content="Check Hyper-V Status" HorizontalAlignment="Left" VerticalAlignment="Center" Margin="0,0,5,0" Padding="3,0,3,0" />
+            <Button Grid.Column="1" Click="AssignableDevice_Click" Content="Check for Assignable Devices" HorizontalAlignment="Left" VerticalAlignment="Center" Margin="0,0,5,0" Padding="3,0,3,0" />
+            <Button Grid.Column="2" Click="RemAllDevice_Click" Content="Remove All Assigned Devices" HorizontalAlignment="Left" VerticalAlignment="Center" Margin="0,0,5,0" Padding="3,0,3,0" />
+        </Grid>
+        <DockPanel Grid.Row="4">
+            <DockPanel.Margin>
+                <Thickness Left="5" Right="5" Top="5" Bottom="5"></Thickness>
+            </DockPanel.Margin>
+            <TextBlock Width="Auto" MinWidth="100" MaxWidth="150" x:Name="BottomLabelStatus" VerticalAlignment="Center"> Refreshing...</TextBlock>
+            <ProgressBar Width="Auto" x:Name="BottomProgressBarStatus" IsIndeterminate="True" Visibility="Visible" />
+        </DockPanel>
+    </Grid>
+</Window>

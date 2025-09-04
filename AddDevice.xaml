@@ -1,0 +1,44 @@
+﻿<Window x:Class="TheFlightSims.HyperVDPD.AddDevice"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:TheFlightSims.HyperVDPD"
+        mc:Ignorable="d"
+        Title="Add Device" 
+        ResizeMode="NoResize"
+        SizeToContent="WidthAndHeight"
+        Height="320" 
+        Width="440">
+    <Grid>
+        <Grid.Margin>
+            <Thickness Top="10" Bottom="10" Left="10" Right="10"></Thickness>
+        </Grid.Margin>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="25*" MinHeight="100" MaxHeight="300"></RowDefinition>
+            <RowDefinition Height="3*"></RowDefinition>
+        </Grid.RowDefinitions>
+        <ListView x:Name="DeviceList" Grid.Row="0">
+            <ListView.View>
+                <GridView>
+                    <GridViewColumn Header="Status" DisplayMemberBinding="{Binding DeviceStatus}" Width="50"/>
+                    <GridViewColumn Header="Type" DisplayMemberBinding="{Binding DeviceType}" Width="100"/>
+                    <GridViewColumn Header="Name" DisplayMemberBinding="{Binding DeviceName}" Width="160"/>
+                    <GridViewColumn Header="ID" DisplayMemberBinding="{Binding DeviceId}" Width="80"/>
+                </GridView>
+            </ListView.View>
+        </ListView>
+        <Grid Grid.Row="1">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition/>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="Auto"/>
+            </Grid.ColumnDefinitions>
+            <Grid.Margin>
+                <Thickness Top="5" Bottom="5"></Thickness>
+            </Grid.Margin>
+            <Button Grid.Column="1" Content="Add Device" VerticalAlignment="Center" Click="AddDeviceButton_Click" Margin="5,0,5,0" Padding="5,0,5,0"/>
+            <Button Grid.Column="2" Content="Close" VerticalAlignment="Center" Click="AddDeviceCloseButton_Click" Margin="5,0,0,0" Padding="5,0,5,0"/>
+        </Grid>
+    </Grid>
+</Window>
