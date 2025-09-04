@@ -1,6 +1,4 @@
-﻿using TheFlightSims.HyperVDPD.WMIProperties;
-
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Management;
@@ -8,6 +6,7 @@ using System.Security;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Windows;
+using TheFlightSims.HyperVDPD.WMIProperties;
 
 namespace TheFlightSims.HyperVDPD
 {
@@ -456,7 +455,7 @@ namespace TheFlightSims.HyperVDPD
                         string productTypeStr = osInfo["ProductType"]?.ToString() ?? "";
                         if (UInt32.TryParse(productTypeStr, out UInt32 productType))
                         {
-                            if (productType != (UInt32)1)
+                            if (productType != 1)
                             {
                                 isOSNotServer = false;
                             }
@@ -582,7 +581,7 @@ namespace TheFlightSims.HyperVDPD
 
                             if (vmObjects.ContainsKey(payload[0]))
                             {
-                                string devPath = Regex.Replace(((string[])hostResources[0].Split(','))[1], "DeviceID=\"Microsoft:[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-4[0-9a-fA-F]{3}-[89aAbB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}\\\\\\\\", "").Replace("\"", "").Replace("\\\\", "\\");
+                                string devPath = Regex.Replace(hostResources[0].Split(',')[1], "DeviceID=\"Microsoft:[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-4[0-9a-fA-F]{3}-[89aAbB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}\\\\\\\\", "").Replace("\"", "").Replace("\\\\", "\\");
                                 vmObjects[payload[0]].devices.Add((instanceId, devPath));
                             }
 

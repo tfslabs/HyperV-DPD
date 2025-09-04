@@ -1,8 +1,8 @@
-﻿using TheFlightSims.HyperVDPD.WMIProperties;
-using System;
+﻿using System;
 using System.Linq;
 using System.Management;
 using System.Windows;
+using TheFlightSims.HyperVDPD.WMIProperties;
 
 namespace TheFlightSims.HyperVDPD
 {

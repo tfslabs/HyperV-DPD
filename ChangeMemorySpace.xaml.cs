@@ -25,8 +25,8 @@ namespace TheFlightSims.HyperVDPD
             {
                 if ((lowMemCompare >= 128 && lowMemCompare <= 3584) && (highMemCompare >= 4096 && highMemCompare <= (UInt64.MaxValue - 2)))
                 {
-                    memRange.lowMem = (UInt64)(lowMemCompare);
-                    memRange.highMem = (UInt64)(highMemCompare);
+                    memRange.lowMem = lowMemCompare;
+                    memRange.highMem = highMemCompare;
                     DialogResult = true;
                 }
                 else

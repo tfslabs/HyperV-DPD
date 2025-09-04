@@ -89,7 +89,7 @@ namespace TheFlightSims.HyperVDPD.WMIProperties
         {
             Connect("root\\virtualization\\v2");
 
-            UInt32 outParams = (UInt32)32768;
+            UInt32 outParams = 32768;
             ManagementObject vm = null;
 
             foreach (ManagementObject obj in GetObjects("Msvm_VirtualSystemSettingData", "*").Cast<ManagementObject>())
@@ -130,7 +130,7 @@ namespace TheFlightSims.HyperVDPD.WMIProperties
 
             try
             {
-                vm["GuestControlledCacheTypes"] = (bool)(isEnableGuestControlCache);
+                vm["GuestControlledCacheTypes"] = isEnableGuestControlCache;
 
                 ManagementObject srv = new ManagementClass(scope, new ManagementPath("Msvm_VirtualSystemManagementService"), null).GetInstances().Cast<ManagementObject>().FirstOrDefault() ?? throw new ManagementException("ChangeGuestCacheType: Assignment service is either not running or crashed");
                 outParams = (UInt32)srv.InvokeMethod("ModifySystemSettings", new object[]
@@ -145,21 +145,21 @@ namespace TheFlightSims.HyperVDPD.WMIProperties
 
             switch (outParams)
             {
-                case (UInt32)0:
+                case 0:
                     break;
-                case (UInt32)1:
+                case 1:
                     throw new ManagementException("ChangeGuestCacheType: Not Supported");
-                case (UInt32)2:
+                case 2:
                     throw new ManagementException("ChangeGuestCacheType: Failed");
-                case (UInt32)3:
+                case 3:
                     throw new ManagementException("ChangeGuestCacheType: Timed out");
-                case (UInt32)4:
+                case 4:
                     throw new ManagementException("ChangeGuestCacheType: Invalid Parameter");
-                case (UInt32)5:
+                case 5:
                     throw new ManagementException("ChangeGuestCacheType: Invalid State");
-                case (UInt32)6:
+                case 6:
                     throw new ManagementException("ChangeGuestCacheType: Incompatible Parameters");
-                case (UInt32)4096:
+                case 4096:
                     throw new ManagementException("ChangeGuestCacheType: Method Parameters Checked but failed to Execute");
                 default:
                     throw new ManagementException($"ChangeGuestCacheType: Unknown error ({outParams})");
@@ -171,7 +171,7 @@ namespace TheFlightSims.HyperVDPD.WMIProperties
             Connect("root\\virtualization\\v2");
 
             ManagementObject vm = null;
-            UInt32 outParams = (UInt32)32768;
+            UInt32 outParams = 32768;
 
             foreach (ManagementObject obj in GetObjects("Msvm_VirtualSystemSettingData", "*").Cast<ManagementObject>())
             {
@@ -210,8 +210,8 @@ namespace TheFlightSims.HyperVDPD.WMIProperties
 
             try
             {
-                vm["LowMmioGapSize"] = (UInt64)lowMem;
-                vm["HighMmioGapSize"] = (UInt64)highMem;
+                vm["LowMmioGapSize"] = lowMem;
+                vm["HighMmioGapSize"] = highMem;
 
                 ManagementObject srv = new ManagementClass(scope, new ManagementPath("Msvm_VirtualSystemManagementService"), null).GetInstances().Cast<ManagementObject>().FirstOrDefault() ?? throw new ManagementException("ChangeMemAllocate: Assignment service is either not running or crashed");
                 outParams = (UInt32)srv.InvokeMethod("ModifySystemSettings", new object[]
@@ -226,21 +226,21 @@ namespace TheFlightSims.HyperVDPD.WMIProperties
 
             switch (outParams)
             {
-                case (UInt32)0:
+                case 0:
                     break;
-                case (UInt32)1:
+                case 1:
                     throw new ManagementException("ChangeMemAllocate: Not Supported");
-                case (UInt32)2:
+                case 2:
                     throw new ManagementException("ChangeMemAllocate: Failed");
-                case (UInt32)3:
+                case 3:
                     throw new ManagementException("ChangeMemAllocate: Timed out");
-                case (UInt32)4:
+                case 4:
                     throw new ManagementException("ChangeMemAllocate: Invalid Parameter");
-                case (UInt32)5:
+                case 5:
                     throw new ManagementException("ChangeMemAllocate: Invalid State");
-                case (UInt32)6:
+                case 6:
                     throw new ManagementException("ChangeMemAllocate: Incompatible Parameters");
-                case (UInt32)4096:
+                case 4096:
                     throw new ManagementException("ChangeMemAllocate: Method Parameters Checked but failed to Execute");
                 default:
                     throw new ManagementException($"ChangeMemAllocate: Unknown error ({outParams})");
@@ -286,7 +286,7 @@ namespace TheFlightSims.HyperVDPD.WMIProperties
         {
             Connect("root\\virtualization\\v2");
 
-            UInt32 outObj = (UInt32)32768;
+            UInt32 outObj = 32768;
 
             ManagementObject setting = ((new ManagementClass(scope, new ManagementPath("Msvm_AssignableDeviceDismountSettingData"), null))?.CreateInstance()) ?? throw new ManagementException("MountPnPDeviceToPcip: Unable to get the setting class");
             ManagementObject srv = new ManagementClass(scope, new ManagementPath("Msvm_AssignableDeviceService"), null).GetInstances().Cast<ManagementObject>().FirstOrDefault() ?? throw new ManagementException("MountPnPDeviceToPcip: Assignment service is either not running or crashed");
@@ -294,10 +294,10 @@ namespace TheFlightSims.HyperVDPD.WMIProperties
             try
             {
                 // Msvm_AssignableDeviceDismountSettingData
-                setting["DeviceInstancePath"] = (string.IsNullOrEmpty(deviceID)) ? (string)string.Empty : (string)deviceID;
-                setting["DeviceLocationPath"] = (string)string.Empty;
-                setting["RequireAcsSupport"] = (bool)false;
-                setting["RequireDeviceMitigations"] = (bool)false;
+                setting["DeviceInstancePath"] = (string.IsNullOrEmpty(deviceID)) ? string.Empty : deviceID;
+                setting["DeviceLocationPath"] = string.Empty;
+                setting["RequireAcsSupport"] = false;
+                setting["RequireDeviceMitigations"] = false;
 
                 outObj = (UInt32)srv.InvokeMethod("DismountAssignableDevice", new object[] {
                     setting.GetText(TextFormat.WmiDtd20)
@@ -311,31 +311,31 @@ namespace TheFlightSims.HyperVDPD.WMIProperties
 
             switch (outObj)
             {
-                case (UInt32)0:
+                case 0:
                     break;
-                case (UInt32)4096:
+                case 4096:
                     throw new ManagementException("MountPnPDeviceToPcip: Method Parameters Checked but failed to Execute");
-                case (UInt32)32768:
+                case 32768:
                     throw new ManagementException("MountPnPDeviceToPcip: Access Denied");
-                case (UInt32)32770:
+                case 32770:
                     throw new ManagementException("MountPnPDeviceToPcip: Not Supported");
-                case (UInt32)32771:
+                case 32771:
                     throw new ManagementException("MountPnPDeviceToPcip: Status is unknown");
-                case (UInt32)32772:
+                case 32772:
                     throw new ManagementException("MountPnPDeviceToPcip: Timeout");
-                case (UInt32)32773:
+                case 32773:
                     throw new ManagementException("MountPnPDeviceToPcip: Invalid parameter");
-                case (UInt32)32774:
+                case 32774:
                     throw new ManagementException("MountPnPDeviceToPcip: System is in use");
-                case (UInt32)32775:
+                case 32775:
                     throw new ManagementException("MountPnPDeviceToPcip: Invalid state for this operation");
-                case (UInt32)32776:
+                case 32776:
                     throw new ManagementException("MountPnPDeviceToPcip: Incorrect data type");
-                case (UInt32)32777:
+                case 32777:
                     throw new ManagementException("MountPnPDeviceToPcip: System is not available");
-                case (UInt32)32778:
+                case 32778:
                     throw new ManagementException("MountPnPDeviceToPcip: Out of memory");
-                case (UInt32)32779:
+                case 32779:
                     throw new ManagementException("MountPnPDeviceToPcip: File not found");
                 default:
                     throw new ManagementException($"Unknow error in method MountPnPDeviceToPcip ({outObj})");
@@ -347,7 +347,7 @@ namespace TheFlightSims.HyperVDPD.WMIProperties
             Connect("root\\virtualization\\v2");
 
             string deviceLocation = string.Empty;
-            UInt32 virtv2_outparams = (UInt32)32768;
+            UInt32 virtv2_outparams = 32768;
 
             foreach (ManagementObject obj in GetObjects("Msvm_PciExpress", "*").Cast<ManagementObject>())
             {
@@ -396,33 +396,33 @@ namespace TheFlightSims.HyperVDPD.WMIProperties
 
             switch (virtv2_outparams)
             {
-                case (UInt32)0:
+                case 0:
                     break;
-                case (UInt32)4096:
+                case 4096:
                     throw new ManagementException("DismountPnPDeviceFromPcip: Method Parameters Checked but failed to Execute");
-                case (UInt32)32768:
+                case 32768:
                     throw new ManagementException("DismountPnPDeviceFromPcip: Failed");
-                case (UInt32)32769:
+                case 32769:
                     throw new ManagementException("DismountPnPDeviceFromPcip: Access Denied");
-                case (UInt32)32770:
+                case 32770:
                     throw new ManagementException("DismountPnPDeviceFromPcip: Not Supported");
-                case (UInt32)32771:
+                case 32771:
                     throw new ManagementException("DismountPnPDeviceFromPcip: Status is unknown");
-                case (UInt32)32772:
+                case 32772:
                     throw new ManagementException("DismountPnPDeviceFromPcip: Timeout");
-                case (UInt32)32773:
+                case 32773:
                     throw new ManagementException("DismountPnPDeviceFromPcip: Invalid parameter");
-                case (UInt32)32774:
+                case 32774:
                     throw new ManagementException("DismountPnPDeviceFromPcip: System is in use");
-                case (UInt32)32775:
+                case 32775:
                     throw new ManagementException("DismountPnPDeviceFromPcip: Invalid state for this operation");
-                case (UInt32)32776:
+                case 32776:
                     throw new ManagementException("DismountPnPDeviceFromPcip: Incorrect data type");
-                case (UInt32)32777:
+                case 32777:
                     throw new ManagementException("DismountPnPDeviceFromPcip: System is not available");
-                case (UInt32)32778:
+                case 32778:
                     throw new ManagementException("DismountPnPDeviceFromPcip: Out of memory");
-                case (UInt32)32779:
+                case 32779:
                     throw new ManagementException("DismountPnPDeviceFromPcip: File not found");
                 default:
                     throw new ManagementException($"Unknow error in method DismountPnPDeviceFromPcip ({virtv2_outparams})");
@@ -437,7 +437,7 @@ namespace TheFlightSims.HyperVDPD.WMIProperties
             ManagementObject setting = (new ManagementClass(scope, new ManagementPath("Msvm_PciExpressSettingData"), null)).CreateInstance();
             ManagementObject srv = new ManagementClass(scope, new ManagementPath("Msvm_VirtualSystemManagementService"), null).GetInstances().Cast<ManagementObject>().FirstOrDefault() ?? throw new ManagementException("MountIntoVM: Assignment service is either not running or crashed");
 
-            UInt32 outParams = (UInt32)32768;
+            UInt32 outParams = 32768;
             string hostRes = string.Empty, vmRes = string.Empty;
 
             foreach (ManagementObject device in GetObjects("Msvm_PciExpress", "*").Cast<ManagementObject>())
@@ -559,19 +559,19 @@ namespace TheFlightSims.HyperVDPD.WMIProperties
 
             switch (outParams)
             {
-                case (UInt32)0:
+                case 0:
                     break;
-                case (UInt32)1:
+                case 1:
                     throw new ManagementException("MountIntoVM: Not Supported");
-                case (UInt32)2:
+                case 2:
                     throw new ManagementException("MountIntoVM: Failed");
-                case (UInt32)3:
+                case 3:
                     throw new ManagementException("MountIntoVM: Timed out");
-                case (UInt32)4:
+                case 4:
                     throw new ManagementException("MountIntoVM: Invalid Parameter");
-                case (UInt32)4096:
+                case 4096:
                     throw new ManagementException("MountIntoVM: Method Parameters Checked but failed to Execute");
-                case (UInt32)4097:
+                case 4097:
                     throw new ManagementException("MountIntoVM: The function may not be called or is reserved for vendor");
                 default:
                     throw new ManagementException($"MountIntoVM: Unknown error ({outParams})");
@@ -584,7 +584,7 @@ namespace TheFlightSims.HyperVDPD.WMIProperties
 
             ManagementObject[] deviceObj = new ManagementObject[1];
             ManagementObject srv = new ManagementClass(scope, new ManagementPath("Msvm_VirtualSystemManagementService"), null).GetInstances().Cast<ManagementObject>().FirstOrDefault() ?? throw new ManagementException("DismountFromVM: Assignment service is either not running or crashed");
-            UInt32 outParams = (UInt32)32768;
+            UInt32 outParams = 32768;
 
             foreach (ManagementObject obj in GetObjects("Msvm_PciExpressSettingData", "*").Cast<ManagementObject>())
             {
@@ -622,19 +622,19 @@ namespace TheFlightSims.HyperVDPD.WMIProperties
 
             switch (outParams)
             {
-                case (UInt32)0:
+                case 0:
                     break;
-                case (UInt32)1:
+                case 1:
                     throw new ManagementException("DismountFromVM: Not Supported");
-                case (UInt32)2:
+                case 2:
                     throw new ManagementException("DismountFromVM: Failed");
-                case (UInt32)3:
+                case 3:
                     throw new ManagementException("DismountFromVM: Timeout");
-                case (UInt32)4:
+                case 4:
                     throw new ManagementException("DismountFromVM: Invalid Parameter");
-                case (UInt32)5:
+                case 5:
                     throw new ManagementException("DismountFromVM: Invalid State");
-                case (UInt32)6:
+                case 6:
                     throw new ManagementException("DismountFromVM: Method Parameters Checked but failed to Execute");
                 default:
                     throw new ManagementException($"DismountFromVM: Unknown error ({outParams})");

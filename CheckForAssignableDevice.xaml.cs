@@ -1,10 +1,10 @@
-﻿using TheFlightSims.HyperVDPD.WMIProperties;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Management;
 using System.Threading.Tasks;
 using System.Windows;
+using TheFlightSims.HyperVDPD.WMIProperties;
 
 namespace TheFlightSims.HyperVDPD
 {
@@ -104,7 +104,7 @@ namespace TheFlightSims.HyperVDPD
 
                                 if (devResDependent.Contains(deviceId.Replace("\\", "\\\\")))
                                 {
-                                    startingAddresses.Add((((string[])deviceResource["Antecedent"].ToString().Split('='))[1]).Replace("\"", ""));
+                                    startingAddresses.Add((deviceResource["Antecedent"].ToString().Split('=')[1]).Replace("\"", ""));
                                 }
 
                                 deviceResource.Dispose();
