@@ -85,6 +85,8 @@ namespace TheFlightSims.HyperVDPD
                                 {
                                     isAssignable = false;
                                 }
+
+                                actualPnPDevice.Dispose();
                             }
 
                             if (!isAssignable)
