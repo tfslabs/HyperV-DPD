@@ -1,6 +1,6 @@
 > :warning:
 >
-> This tool is still under review **(Phase 1/3)**, and not ready for production environment.
+> This tool is still under review **(Phase 2/3)**, and not ready for production environment.
 
 # Hyper-V DPD
 
