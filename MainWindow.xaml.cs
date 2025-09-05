@@ -90,7 +90,14 @@ namespace TheFlightSims.HyperVDPD
                         {
                             await Task.Run(() =>
                             {
-                                machine.ChangePnpDeviceBehaviour(deviceId, "Enable");
+                                try
+                                {
+                                    machine.DismountPnPDeviceFromPcip(deviceId.Replace("PCI\\", "PCIP\\"));
+                                }
+                                finally
+                                {
+                                    machine.ChangePnpDeviceBehaviour(deviceId, "Enable");
+                                }
                             });
                         }
                         catch (Exception exp)
