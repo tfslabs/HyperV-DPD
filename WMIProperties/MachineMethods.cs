@@ -544,7 +544,6 @@ namespace TheFlightSims.HyperVDPD.WMIProperties
                 setting["VirtualFunctions"] = new UInt16[] { 0 };
                 setting["VirtualSystemIdentifiers"] = new string[] { "{" + Guid.NewGuid() + "}" };
 
-
                 outParams = (UInt32)srv.InvokeMethod("AddResourceSettings", new object[]
                 {
                     vmCurrentSetting,
