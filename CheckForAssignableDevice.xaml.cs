@@ -140,6 +140,11 @@ namespace TheFlightSims.HyperVDPD
                                 }
                             }
 
+                            if (memoryGap == 0)
+                            {
+                                deviceNote += ((deviceNote.Length == 0) ? "" : "\n") + "Unable to calculate gap memory.";
+                            }
+
                             Dispatcher.Invoke(() =>
                             {
                                 AssignableDevice_ListView.Items.Add(new
