@@ -160,7 +160,7 @@ namespace TheFlightSims.HyperVDPD.WMIProperties
                 case 6:
                     throw new ManagementException("ChangeGuestCacheType: Incompatible Parameters");
                 case 4096:
-                    throw new ManagementException("ChangeGuestCacheType: Method Parameters Checked but failed to Execute");
+                    throw new ManagementException("ChangeGuestCacheType: Method Parameters Checked - Job Started");
                 default:
                     throw new ManagementException($"ChangeGuestCacheType: Unknown error ({outParams})");
             }
@@ -241,7 +241,7 @@ namespace TheFlightSims.HyperVDPD.WMIProperties
                 case 6:
                     throw new ManagementException("ChangeMemAllocate: Incompatible Parameters");
                 case 4096:
-                    throw new ManagementException("ChangeMemAllocate: Method Parameters Checked but failed to Execute");
+                    throw new ManagementException("ChangeMemAllocate: Method Parameters Checked - Job Started");
                 default:
                     throw new ManagementException($"ChangeMemAllocate: Unknown error ({outParams})");
             }
@@ -314,7 +314,7 @@ namespace TheFlightSims.HyperVDPD.WMIProperties
                 case 0:
                     break;
                 case 4096:
-                    throw new ManagementException("MountPnPDeviceToPcip: Method Parameters Checked but failed to Execute");
+                    throw new ManagementException("MountPnPDeviceToPcip: Method Parameters Checked - Job Started");
                 case 32768:
                     throw new ManagementException("MountPnPDeviceToPcip: Access Denied");
                 case 32770:
@@ -399,7 +399,7 @@ namespace TheFlightSims.HyperVDPD.WMIProperties
                 case 0:
                     break;
                 case 4096:
-                    throw new ManagementException("DismountPnPDeviceFromPcip: Method Parameters Checked but failed to Execute");
+                    throw new ManagementException("DismountPnPDeviceFromPcip: Method Parameters Checked - Job Started");
                 case 32768:
                     throw new ManagementException("DismountPnPDeviceFromPcip: Failed");
                 case 32769:
@@ -569,7 +569,7 @@ namespace TheFlightSims.HyperVDPD.WMIProperties
                 case 4:
                     throw new ManagementException("MountIntoVM: Invalid Parameter");
                 case 4096:
-                    throw new ManagementException("MountIntoVM: Method Parameters Checked but failed to Execute");
+                    throw new ManagementException("MountIntoVM: Method Parameters Checked - Job Started");
                 case 4097:
                     throw new ManagementException("MountIntoVM: The function may not be called or is reserved for vendor");
                 default:
@@ -634,7 +634,7 @@ namespace TheFlightSims.HyperVDPD.WMIProperties
                 case 5:
                     throw new ManagementException("DismountFromVM: Invalid State");
                 case 6:
-                    throw new ManagementException("DismountFromVM: Method Parameters Checked but failed to Execute");
+                    throw new ManagementException("DismountFromVM: Method Parameters Checked - Job Started");
                 default:
                     throw new ManagementException($"DismountFromVM: Unknown error ({outParams})");
             }
