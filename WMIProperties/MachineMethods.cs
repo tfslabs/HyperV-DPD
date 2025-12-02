@@ -572,13 +572,40 @@ namespace TheFlightSims.HyperVDPD.WMIProperties
             }
         }
 
+        /*
+         * Dismount PnP Device from PCIP
+         * This method dismounts a device from PCIP (root\virtualization\v2)
+         * 
+         * How does it work?
+         *   1. It connects to the Hyper-V namespace (root\virtualization\v2)
+         *   2. From devicePath variable, get the location path
+         *   3. From the devicePath and PCIP device location path, try to dismount the
+         *      device using Msvm_AssignableDeviceService and get the out param
+         *   4. From the out parameter, check the return value and compare it into Success or 
+         *      Failure state
+         *   
+         *  Note:
+         *      - For each value of the get ManagementObject, it is required to check for null value
+         *      - No matter how the service operate with the parameter, any WMI object must be disposed
+         *      
+         *  References: 
+         *      - https://learn.microsoft.com/en-us/windows/win32/hyperv_v2/msvm-assignabledeviceservice
+         *      - https://learn.microsoft.com/en-us/windows/win32/hyperv_v2/msvm-pciexpress
+         *  
+         *  Limitations:
+         *      - Windows 10 1703/Windows Server 2016 or later is required for this method to work.
+         *      - WMI Filtering may affect the operation.
+         */
         public void DismountPnPDeviceFromPcip(string devicePath)
         {
+            // 1. Connect to Hyper-V WMI and 
             Connect("root\\virtualization\\v2");
 
+            // Set the out param and device location
+            uint outObj = 32768;
             string deviceLocation = string.Empty;
-            uint virtv2_outparams = 32768;
 
+            // 2. Get the device location path
             foreach (ManagementObject obj in GetObjects("Msvm_PciExpress", "*").Cast<ManagementObject>())
             {
                 string devInstancePath = obj["DeviceInstancePath"]?.ToString();
@@ -604,16 +631,29 @@ namespace TheFlightSims.HyperVDPD.WMIProperties
                 obj.Dispose();
             }
 
+            // In case not found, throw exception
             if (deviceLocation == string.Empty)
             {
                 throw new ManagementException("DismountPnPDeviceFromPcip: Unable to get the device location");
             }
 
-            ManagementObject srv = new ManagementClass(scope, new ManagementPath("Msvm_AssignableDeviceService"), null).GetInstances().Cast<ManagementObject>().FirstOrDefault() ?? throw new ManagementException("DismountPnPDeviceFromPcip: Assignment service is either not running or crashed");
+            // 3. Call the service 
+            ManagementObject srv = new ManagementClass(
+                scope, 
+                new ManagementPath("Msvm_AssignableDeviceService"), 
+                null
+            ).GetInstances().Cast<ManagementObject>().FirstOrDefault();
 
+            if (srv == null)
+            {
+                throw new ManagementException(
+                    "DismountPnPDeviceFromPcip: Assignment service is either not running or crashed"
+                );
+            }
+            
             try
             {
-                virtv2_outparams = (uint)srv.InvokeMethod("MountAssignableDevice", new object[]
+                outObj = (uint)srv.InvokeMethod("MountAssignableDevice", new object[]
                 {
                     devicePath,
                     deviceLocation
@@ -624,7 +664,8 @@ namespace TheFlightSims.HyperVDPD.WMIProperties
                 srv?.Dispose();
             }
 
-            switch (virtv2_outparams)
+            // 4. Check for the out param. Returns 0 in case success, other numbers as failure, and failback as unknown
+            switch (outObj)
             {
                 case 0:
                     break;
@@ -655,23 +696,75 @@ namespace TheFlightSims.HyperVDPD.WMIProperties
                 case 32779:
                     throw new ManagementException("DismountPnPDeviceFromPcip: File not found");
                 default:
-                    throw new ManagementException($"Unknow error in method DismountPnPDeviceFromPcip ({virtv2_outparams})");
+                    throw new ManagementException($"Unknow error in method DismountPnPDeviceFromPcip ({outObj})");
             }
         }
 
+        /*
+         * Mount PCIP device into the VM (Must be invoked when it is still in PCI)
+         * 
+         * How does it work?
+         *   1. It connects to the Hyper-V namespace (root\virtualization\v2)
+         *   2. Then, creates a new instance of PCI Express Setting Data from Msvm_PciExpressSettingData
+         *   3. From the PCIP device list, find if there is any device matches the PCI that has mounted
+         *   4. Get the VM setting to mount new device into the VM
+         *   5. Now try to mount the VM using vmCurrentSetting and setting
+         *   
+         *  Note:
+         *      - For each value of the get ManagementObject, it is required to check for null value
+         *      - No matter how the service operate with the parameter, any WMI object must be disposed
+         *      - The function must be invoked from the PCI, that means the when the device is still with
+         *      
+         *  References: 
+         *      - https://learn.microsoft.com/en-us/windows/win32/hyperv_v2/msvm-pciexpresssettingdata
+         *      - https://learn.microsoft.com/en-us/windows/win32/hyperv_v2/msvm-virtualsystemmanagementservice
+         *      - https://learn.microsoft.com/en-us/windows/win32/hyperv_v2/msvm-pciexpress
+         *      - https://learn.microsoft.com/en-us/windows/win32/hyperv_v2/msvm-virtualsystemsettingdata
+         *      - https://learn.microsoft.com/en-us/previous-versions/cc136911(v=vs.85)
+         *      - https://learn.microsoft.com/en-us/windows/win32/hyperv_v2/cim-resourceallocationsettingdata
+         *      - https://learn.microsoft.com/en-us/windows/win32/hyperv_v2/msvm-pciexpresssettingdata
+         *  
+         *  Limitations:
+         *      - Windows 10 1703/Windows Server 2016 or later is required for this method to work.
+         *      - Changing host device name can cause counter effects to the Hyper-V system
+         *      - WMI Filtering may affect the operation.
+         */
         public void MountIntoVM(string vmName, string deviceId)
         {
+            // 1. Connect to Hyper-V WMI
             Connect("root\\virtualization\\v2");
-
-            ManagementObject vmCurrentSetting = null;
-            ManagementObject setting = (new ManagementClass(scope, new ManagementPath("Msvm_PciExpressSettingData"), null)).CreateInstance();
-            ManagementObject srv = new ManagementClass(scope, new ManagementPath("Msvm_VirtualSystemManagementService"), null).GetInstances().Cast<ManagementObject>().FirstOrDefault() ?? throw new ManagementException("MountIntoVM: Assignment service is either not running or crashed");
-
+            
             uint outParams = 32768;
             string hostRes = string.Empty, vmRes = string.Empty;
+            
+            ManagementObject vmCurrentSetting = null;
 
+            // 2. Create new instance for the vm setting
+            ManagementObject setting = new ManagementClass(
+                scope, 
+                new ManagementPath("Msvm_PciExpressSettingData"), 
+                null
+            ).CreateInstance();
+
+            // Get the service instance
+            ManagementObject srv = new ManagementClass(
+                scope,
+                new ManagementPath("Msvm_VirtualSystemManagementService"),
+                null
+            ).GetInstances().Cast<ManagementObject>().FirstOrDefault();
+
+            if (srv == null)
+            {
+                throw new ManagementException(
+                    "MountIntoVM: Assignment service is either not running or crashed"
+                );
+            }
+
+            // 3. From the PCIP device list, find if there is any device matches the PCI that has mounted
+            //  From that, set the host resources (hostRes)
             foreach (ManagementObject device in GetObjects("Msvm_PciExpress", "*").Cast<ManagementObject>())
             {
+                // Get the device instance path (starts with "PCIP\")
                 string devInstancePath = device["DeviceInstancePath"]?.ToString();
 
                 if (devInstancePath == null)
@@ -680,11 +773,24 @@ namespace TheFlightSims.HyperVDPD.WMIProperties
                     continue;
                 }
 
+                // If matches, make sure the 
                 if (devInstancePath.Contains(deviceId.Replace("PCI\\", "PCIP\\")))
                 {
+                    // Get the host name and device PnP
                     string hostName = device["SystemName"]?.ToString();
                     string deviceIdPnP = device["DeviceId"]?.ToString();
 
+                    // Set the hostRes
+                    /*
+                     * Note it has a structure of this (in a single line, just seperate into lines so can see it easily):
+                     *  \\{hostName}\root\virtualization\v2:
+                     *  Msvm_PciExpress.CreationClassName="Msvm_PciExpress",
+                     *  DeviceID="{deviceIdPnP}",
+                     *  SystemCreationClassName="Msvm_ComputerSystem",
+                     *  SystemName="{hostName}"
+                     *  
+                     *  where "hostName" is the device name, and "deviceIdPnP" is the device ID in GUIDv4
+                     */
                     if (hostName != null || deviceIdPnP != null)
                     {
                         deviceIdPnP = deviceIdPnP.Replace("\\", "\\\\");
@@ -696,16 +802,21 @@ namespace TheFlightSims.HyperVDPD.WMIProperties
                     device.Dispose();
                 }
             }
+
+            // If the hostRes is empty, throw new exception
             if (hostRes == string.Empty)
             {
                 throw new ManagementException("MountIntoVM: Unable to get HostResource");
             }
 
+            // 4. Get the VM setting to mount new device into the VM
             foreach (ManagementObject vmSetting in GetObjects("Msvm_VirtualSystemSettingData", "*").Cast<ManagementObject>())
             {
+                // Get the Caption and Instance ID
                 string vmCaption = vmSetting["Caption"]?.ToString();
                 string vmInstanceID = vmSetting["InstanceID"]?.ToString();
 
+                // Check if the vmCaption is null
                 if (vmCaption == null || vmInstanceID == null)
                 {
                     vmSetting.Dispose();
@@ -714,6 +825,7 @@ namespace TheFlightSims.HyperVDPD.WMIProperties
 
                 if (vmCaption.Equals("Virtual Machine Settings") && !vmInstanceID.Contains("Microsoft:Definition"))
                 {
+                    // Get the VM name
                     string hostName = vmSetting["ElementName"]?.ToString();
 
                     if (hostName == null)
@@ -722,6 +834,7 @@ namespace TheFlightSims.HyperVDPD.WMIProperties
                         continue;
                     }
 
+                    // If the VM name matches with the name wants to set the target, set the vmCurrentSetting and vmRes to it
                     if (hostName.Equals(vmName))
                     {
                         vmRes = $"{vmSetting["InstanceID"]}\\{Guid.NewGuid().ToString().ToUpper()}";
@@ -729,18 +842,20 @@ namespace TheFlightSims.HyperVDPD.WMIProperties
                         vmSetting.Dispose();
                         break;
                     }
-
                 }
             }
+
             if (vmRes == string.Empty)
             {
                 throw new ManagementException("MountIntoVM: Unable to generate InstanceID");
             }
+            
             if (vmCurrentSetting == null)
             {
                 throw new ManagementException("MountIntoVM: Unable to get setting for VM");
             }
 
+            // 5. Now try to mount the VM using vmCurrentSetting and setting
             try
             {
                 // CIM_SettingData
@@ -773,12 +888,14 @@ namespace TheFlightSims.HyperVDPD.WMIProperties
                 // Msvm_PciExpressSettingData
                 setting["VirtualFunctions"] = new ushort[] { 0 };
                 setting["VirtualSystemIdentifiers"] = new string[] { "{" + Guid.NewGuid() + "}" };
-
-
+                
+                // Call for the service
                 outParams = (uint)srv.InvokeMethod("AddResourceSettings", new object[]
                 {
                     vmCurrentSetting,
-                    new string[] { setting.GetText(TextFormat.WmiDtd20) }
+                    new string[] { 
+                        setting.GetText(TextFormat.WmiDtd20) 
+                    }
                 });
             }
             finally
@@ -787,6 +904,7 @@ namespace TheFlightSims.HyperVDPD.WMIProperties
                 srv?.Dispose();
             }
 
+            // 6. Check for the out param. Returns 0 in case success, other numbers as failure, and failback as unknown
             switch (outParams)
             {
                 case 0:
