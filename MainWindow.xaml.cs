@@ -174,18 +174,7 @@ namespace TheFlightSims.HyperVDPD
                         {
                             await Task.Run(() =>
                             {
-<<<<<<< Updated upstream
-                                try
-                                {
-                                    machine.DismountPnPDeviceFromPcip(deviceId.Replace("PCI\\", "PCIP\\"));
-                                }
-                                finally
-                                {
-                                    machine.ChangePnpDeviceBehaviour(deviceId, "Enable");
-                                }
-=======
                                 machine.ChangePnpDeviceBehaviour(deviceId, isDisable: false);
->>>>>>> Stashed changes
                             });
                         }
                         catch (Exception exp)
