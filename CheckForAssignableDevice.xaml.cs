@@ -91,7 +91,7 @@ namespace TheFlightSims.HyperVDPD
                     ManagementObjectCollection pnpDeviceAllocatedResource = machine.GetObjects("Win32_PNPAllocatedResource", "Antecedent, Dependent");
                     ManagementObjectCollection pnpDeviceMemorySpace = machine.GetObjects("Win32_DeviceMemoryAddress", "StartingAddress, EndingAddress");
 
-                    Dictionary<string, (string caption, string status)> pnpDeviceEntityMap = new Dictionary<string, (string, string)>();
+                    List<(string deviceId, string devCaption, string devStatus)> pnpDeviceEntityMap = new List<(string, string, string)>();
                     foreach (ManagementObject device in pnpDeviceEntity.Cast<ManagementObject>())
                     {
                         string deviceId = device["DeviceID"]?.ToString();
@@ -100,7 +100,9 @@ namespace TheFlightSims.HyperVDPD
 
                         if (!string.IsNullOrEmpty(deviceId) && !string.IsNullOrEmpty(devCaption) && !string.IsNullOrEmpty(devStatus))
                         {
-                            pnpDeviceEntityMap.Add(deviceId.Replace("\\\\", "\\").Trim(), (devCaption, devStatus));
+                            pnpDeviceEntityMap.Add(
+                                (deviceId.Replace("\\\\", "\\").Trim(), devCaption, devStatus)
+                            );
                         }
 
                         device.Dispose();
@@ -161,13 +163,9 @@ namespace TheFlightSims.HyperVDPD
                     /*
                      * 
                      */
-                    foreach (KeyValuePair<string, (string devCaption, string devStatus)> deviceInstance in pnpDeviceEntityMap)
+                    foreach ((string id, string caption, string status) in pnpDeviceEntityMap)
                     {
-                        string deviceId = deviceInstance.Key;
-                        string caption = deviceInstance.Value.devCaption;
-                        string status = deviceInstance.Value.devStatus;
-
-                        if (deviceId.StartsWith("PCI\\"))
+                        if (id.StartsWith("PCI\\"))
                         {
                             bool isAssignable = true;
                             UInt64 memoryGap = 0;
@@ -179,7 +177,7 @@ namespace TheFlightSims.HyperVDPD
                                 deviceNote += ((deviceNote.Length == 0) ? "" : "\n") + "Device is disabled. Please re-enable the device to let the program check the memory gap.";
                             }
 
-                            if (!pnpDeviceSet.Contains(deviceId))
+                            if (!pnpDeviceSet.Contains(id))
                             {
                                 isAssignable = false;
                                 deviceNote += ((deviceNote.Length == 0) ? "" : "\n") + "The PCI device is not support either Express Endpoint, Embedded Endpoint, or Legacy Express Endpoint.";
@@ -189,7 +187,7 @@ namespace TheFlightSims.HyperVDPD
                             {
                                 foreach ((UInt64 startMemory, string deviceId) deviceResource in pnpDeviceAllocatedResourceMap)
                                 {
-                                    if (deviceId.Equals(deviceResource.deviceId))
+                                    if (id.Equals(deviceResource.deviceId))
                                     {
                                         if (pnpDeviceMemorySpaceMap.ContainsKey(deviceResource.startMemory))
                                         {
@@ -209,7 +207,7 @@ namespace TheFlightSims.HyperVDPD
                             {
                                 _ = AssignableDevice_ListView.Items.Add(new
                                 {
-                                    DeviceId = deviceId,
+                                    DeviceId = id,
                                     DeviceName = caption,
                                     DeviceGap = (!isAssignable) ? "N/A" : $"{memoryGap} MB",
                                     DeviceNote = deviceNote
