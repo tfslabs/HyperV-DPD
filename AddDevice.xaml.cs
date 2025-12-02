@@ -2,6 +2,7 @@
 using System.Linq;
 using System.Management;
 using System.Windows;
+using TheFlightSims.HyperVDPD.DefaultUI;
 using TheFlightSims.HyperVDPD.WMIProperties;
 
 namespace TheFlightSims.HyperVDPD
@@ -31,7 +32,7 @@ namespace TheFlightSims.HyperVDPD
             }
             else
             {
-                MessageBox.Show(
+                _ = MessageBox.Show(
                     "Please select a device to add.",
                     "Warning",
                     MessageBoxButton.OK,
@@ -52,7 +53,7 @@ namespace TheFlightSims.HyperVDPD
         public string GetDeviceId()
         {
             UpdateDevices();
-            ShowDialog();
+            _ = ShowDialog();
 
             return deviceId;
         }
@@ -75,7 +76,7 @@ namespace TheFlightSims.HyperVDPD
                         continue;
                     }
 
-                    DeviceList.Items.Add(new
+                    _ = DeviceList.Items.Add(new
                     {
                         DeviceStatus = deviceStatus,
                         DeviceType = deviceType,
@@ -86,7 +87,7 @@ namespace TheFlightSims.HyperVDPD
             }
             catch (Exception ex)
             {
-                WMIDefaultValues.HandleException(ex, machine.GetComputerName());
+                (new ExceptionView()).HandleException(ex);
             }
         }
     }
