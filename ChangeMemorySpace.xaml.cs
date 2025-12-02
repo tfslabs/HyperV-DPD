@@ -1,5 +1,4 @@
-﻿using System;
-using System.Windows;
+﻿using System.Windows;
 
 namespace TheFlightSims.HyperVDPD
 {
@@ -8,7 +7,7 @@ namespace TheFlightSims.HyperVDPD
         /*
          * Global properties
          */
-        protected (UInt64 lowMem, UInt64 highMem) memRange;
+        protected (ulong lowMem, ulong highMem) memRange;
 
         public ChangeMemorySpace(string vmName)
         {
@@ -21,9 +20,9 @@ namespace TheFlightSims.HyperVDPD
          */
         private void Confirm_Button(object sender, RoutedEventArgs e)
         {
-            if (UInt64.TryParse(LowMemory_TextBox.Text, out UInt64 lowMemCompare) && UInt64.TryParse(HighMemory_TextBox.Text, out UInt64 highMemCompare))
+            if (ulong.TryParse(LowMemory_TextBox.Text, out ulong lowMemCompare) && ulong.TryParse(HighMemory_TextBox.Text, out ulong highMemCompare))
             {
-                if ((lowMemCompare >= 128 && lowMemCompare <= 3584) && (highMemCompare >= 4096 && highMemCompare <= (UInt64.MaxValue - 2)))
+                if ((lowMemCompare >= 128 && lowMemCompare <= 3584) && (highMemCompare >= 4096 && highMemCompare <= (ulong.MaxValue - 2)))
                 {
                     memRange.lowMem = lowMemCompare;
                     memRange.highMem = highMemCompare;
@@ -31,7 +30,7 @@ namespace TheFlightSims.HyperVDPD
                 }
                 else
                 {
-                    MessageBox.Show(
+                    _ = MessageBox.Show(
                         "Make sure the Low MMIO Gap is in range (128, 3584) and High MMIO is larger than 4096",
                         "Warning",
                         MessageBoxButton.OK,
@@ -41,7 +40,7 @@ namespace TheFlightSims.HyperVDPD
             }
             else
             {
-                MessageBox.Show(
+                _ = MessageBox.Show(
                     "Please enter a positive integer in both box.",
                     "Warning",
                     MessageBoxButton.OK,
@@ -58,9 +57,9 @@ namespace TheFlightSims.HyperVDPD
         /*
          * Non-button methods
          */
-        public (UInt64, UInt64) ReturnValue()
+        public (ulong, ulong) ReturnValue()
         {
-            ShowDialog();
+            _ = ShowDialog();
 
             return memRange;
         }
