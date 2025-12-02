@@ -118,20 +118,22 @@
     <Compile Include="CheckForAssignableDevice.xaml.cs">
       <DependentUpon>CheckForAssignableDevice.xaml</DependentUpon>
     </Compile>
-    <Compile Include="ConnectForm.xaml.cs">
-      <DependentUpon>ConnectForm.xaml</DependentUpon>
-    </Compile>
-    <Compile Include="About.xaml.cs">
+    <Compile Include="DefaultUI\About.xaml.cs">
       <DependentUpon>About.xaml</DependentUpon>
     </Compile>
     <Compile Include="AddDevice.xaml.cs">
       <DependentUpon>AddDevice.xaml</DependentUpon>
     </Compile>
+    <Compile Include="DefaultUI\ConnectForm.xaml.cs">
+      <DependentUpon>ConnectForm.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="DefaultUI\ExceptionView.xaml.cs">
+      <DependentUpon>ExceptionView.xaml</DependentUpon>
+    </Compile>
     <Compile Include="HyperVStatus.xaml.cs">
       <DependentUpon>HyperVStatus.xaml</DependentUpon>
     </Compile>
     <Compile Include="WMIProperties\MachineMethods.cs" />
-    <Compile Include="WMIProperties\WMIDefaultValues.cs" />
     <Page Include="ChangeMemorySpace.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
@@ -140,17 +142,21 @@
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
-    <Page Include="ConnectForm.xaml">
-      <Generator>MSBuild:Compile</Generator>
-      <SubType>Designer</SubType>
-    </Page>
-    <Page Include="About.xaml">
+    <Page Include="DefaultUI\About.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="AddDevice.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="DefaultUI\ConnectForm.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Include="DefaultUI\ExceptionView.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
     </Page>
     <Page Include="HyperVStatus.xaml">
       <SubType>Designer</SubType>
