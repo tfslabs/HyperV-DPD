@@ -4,6 +4,7 @@ using System.Linq;
 using System.Management;
 using System.Threading.Tasks;
 using System.Windows;
+using TheFlightSims.HyperVDPD.DefaultUI;
 using TheFlightSims.HyperVDPD.WMIProperties;
 
 namespace TheFlightSims.HyperVDPD
@@ -45,6 +46,13 @@ namespace TheFlightSims.HyperVDPD
                 await Task.Run(() =>
                 {
                     machine.Connect("root\\cimv2");
+
+                    // API calls to get all PnP entities
+                    ManagementObjectCollection pnpDeviceEntity = machine.GetObjects("Win32_PnPEntity", "DeviceID, Caption, Status");
+                    ManagementObjectCollection pnpDevice = machine.GetObjects("Win32_PnPDevice", "SameElement, SystemElement");
+                    ManagementObjectCollection pnpDeviceAllocatedResource = machine.GetObjects("Win32_PNPAllocatedResource", "Antecedent, Dependent");
+
+
 
                     foreach (ManagementObject device in machine.GetObjects("Win32_PnPEntity", "DeviceID, Caption, Status").Cast<ManagementObject>())
                     {
@@ -106,7 +114,7 @@ namespace TheFlightSims.HyperVDPD
 
                                 if (devResDependent.Contains(deviceId.Replace("\\", "\\\\")))
                                 {
-                                    startingAddresses.Add((deviceResource["Antecedent"].ToString().Split('=')[1]).Replace("\"", ""));
+                                    _ = startingAddresses.Add((deviceResource["Antecedent"].ToString().Split('=')[1]).Replace("\"", ""));
                                 }
 
                                 deviceResource.Dispose();
@@ -133,7 +141,7 @@ namespace TheFlightSims.HyperVDPD
 
                                     if (startingAddresses.Contains(startAddrString))
                                     {
-                                        memoryGap += Math.Ceiling((Double.Parse(endAddrString) - Double.Parse(startAddrString)) / 1048576.0);
+                                        memoryGap += Math.Ceiling((double.Parse(endAddrString) - double.Parse(startAddrString)) / 1048576.0);
                                     }
 
                                     deviceMem.Dispose();
@@ -147,11 +155,11 @@ namespace TheFlightSims.HyperVDPD
 
                             Dispatcher.Invoke(() =>
                             {
-                                AssignableDevice_ListView.Items.Add(new
+                                _ = AssignableDevice_ListView.Items.Add(new
                                 {
                                     DeviceId = deviceId,
                                     DeviceName = devCaption,
-                                    DeviceGap = (!isAssignable) ? WMIDefaultValues.notAvailable : $"{memoryGap} MB",
+                                    DeviceGap = (!isAssignable) ? "N/A" : $"{memoryGap} MB",
                                     DeviceNote = deviceNote
                                 });
                             });
@@ -163,7 +171,7 @@ namespace TheFlightSims.HyperVDPD
             }
             catch (Exception ex)
             {
-                WMIDefaultValues.HandleException(ex, machine.GetComputerName());
+                (new ExceptionView()).HandleException(ex);
             }
         }
     }
