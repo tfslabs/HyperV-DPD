@@ -206,14 +206,14 @@ namespace TheFlightSims.HyperVDPD
 
                             if (isAssignable)
                             {
-                                foreach ((UInt64 startMemory, string deviceId) deviceResource in pnpDeviceAllocatedResourceMap)
+                                foreach ((UInt64 startMemory, string deviceId) in pnpDeviceAllocatedResourceMap)
                                 {
-                                    if (id.Equals(deviceResource.deviceId))
+                                    if (id.Equals(deviceId))
                                     {
-                                        if (pnpDeviceMemorySpaceMap.ContainsKey(deviceResource.startMemory))
+                                        if (pnpDeviceMemorySpaceMap.ContainsKey(startMemory))
                                         {
-                                            UInt64 endAddr = pnpDeviceMemorySpaceMap[deviceResource.startMemory];
-                                            memoryGap += (endAddr - deviceResource.startMemory + 1048575UL) / 1048576UL;
+                                            UInt64 endAddr = pnpDeviceMemorySpaceMap[startMemory];
+                                            memoryGap += (endAddr - startMemory + 1048575UL) / 1048576UL;
                                         }
                                     }
                                 }
