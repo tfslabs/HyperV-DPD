@@ -1,0 +1,47 @@
+﻿<Window x:Class="TheFlightSims.HyperVDPD.DefaultUI.ExceptionView"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:TheFlightSims.HyperVDPD"
+        mc:Ignorable="d"
+        Title="An error occurred" 
+        Height="300"
+        Width="500"
+        ResizeMode="NoResize" WindowStyle="SingleBorderWindow">
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="1*"/>
+            <RowDefinition Height="1*"/>
+            <RowDefinition Height="3*"/>
+        </Grid.RowDefinitions>
+        <Grid Grid.Row="0">
+            <Grid.Margin>
+                <Thickness Left="5" Right="5" Top="5"></Thickness>
+            </Grid.Margin>
+            <TextBlock Grid.Row="0" x:Name="ExceptionMessage_TextBlock" TextWrapping="NoWrap">
+                An exception has occurred in the application.
+                <LineBreak/>
+                You may choose to close the application or ignore the error.
+            </TextBlock>
+        </Grid>
+        <Grid Grid.Row="1">
+            <Grid.Margin>
+                <Thickness Left="5" Right="5"></Thickness>
+            </Grid.Margin>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition/>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="Auto"/>
+            </Grid.ColumnDefinitions>
+            <Button Grid.Column="1" MinWidth="50" Margin="5,0,5,0" Click="Click_IgnoreException" x:Name="Button_Ignore" HorizontalAlignment="Right" VerticalAlignment="Center">Ignore</Button>
+            <Button Grid.Column="2" MinWidth="50" Margin="5,0,0,0" Click="Click_CloseApp" HorizontalAlignment="Right" VerticalAlignment="Center">Close Application</Button>
+        </Grid>
+        <Grid Grid.Row="2">
+            <Grid.Margin>
+                <Thickness Left="5" Right="5" Bottom="5"></Thickness>
+            </Grid.Margin>
+            <TextBox x:Name="DetailedExceptionDetail_TextBox" TextWrapping="Wrap" VerticalScrollBarVisibility="Auto" IsReadOnly="True" Background="LightGray"/>
+        </Grid>
+    </Grid>
+</Window>
