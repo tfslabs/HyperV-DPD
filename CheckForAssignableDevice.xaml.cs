@@ -115,7 +115,16 @@ namespace TheFlightSims.HyperVDPD
 
                         if (!string.IsNullOrEmpty(PnpDevString))
                         {
-                            string actualPnpDevString = PnpDevString.Split('=')[1].Replace("\"", "").Replace("\\\\", "\\").Trim();
+                            string[] sysElementStrArr = PnpDevString.Split('=');
+
+                            if (sysElementStrArr.Length < 2)
+                            {
+                                continue;
+                            }
+
+                            string actualPnpDevString = sysElementStrArr[1].Replace("\"", "").Replace("\\\\", "\\").Trim('"');
+
+
                             pnpDeviceSet.Add(actualPnpDevString);
                         }
 
@@ -130,8 +139,16 @@ namespace TheFlightSims.HyperVDPD
 
                         if (!string.IsNullOrEmpty(antecedentRes) && !string.IsNullOrEmpty(dependentRes))
                         {
-                            UInt64 startingMemory = UInt64.Parse(antecedentRes.Split('=')[1].Replace("\"", ""));
-                            string deviceID = dependentRes.Split('=')[1].Replace("\"", "").Replace("\\\\", "\\").Trim();
+                            string[] antecedentResStrArr = antecedentRes.Split('=');
+                            string[] dependentResStrArr = dependentRes.Split('=');
+
+                            if (antecedentResStrArr.Length < 2 || dependentResStrArr.Length < 2)
+                            {
+                                continue;
+                            }
+
+                            UInt64 startingMemory = UInt64.Parse(antecedentResStrArr[1].Replace("\"", ""));
+                            string deviceID = dependentResStrArr[1].Replace("\"", "").Replace("\\\\", "\\").Trim('"');
 
                             pnpDeviceAllocatedResourceMap.Add((
                                     startingMemory,
@@ -159,7 +176,11 @@ namespace TheFlightSims.HyperVDPD
                         memorySpaces.Dispose();
                     }
 
-                    
+                    pnpDeviceEntity.Dispose();
+                    pnpDevice.Dispose();
+                    pnpDeviceAllocatedResource.Dispose();
+                    pnpDeviceMemorySpace.Dispose();
+
                     /*
                      * 
                      */
@@ -171,7 +192,7 @@ namespace TheFlightSims.HyperVDPD
                             UInt64 memoryGap = 0;
                             string deviceNote = string.Empty;
 
-                            if (!status.ToLower().Equals("ok"))
+                            if (!string.Equals(status, "OK", StringComparison.OrdinalIgnoreCase))
                             {
                                 isAssignable = false;
                                 deviceNote += ((deviceNote.Length == 0) ? "" : "\n") + "Device is disabled. Please re-enable the device to let the program check the memory gap.";
@@ -192,7 +213,7 @@ namespace TheFlightSims.HyperVDPD
                                         if (pnpDeviceMemorySpaceMap.ContainsKey(deviceResource.startMemory))
                                         {
                                             UInt64 endAddr = pnpDeviceMemorySpaceMap[deviceResource.startMemory];
-                                            memoryGap += (endAddr - deviceResource.startMemory + 1048575) / 1048576;
+                                            memoryGap += (endAddr - deviceResource.startMemory + 1048575UL) / 1048576UL;
                                         }
                                     }
                                 }
