@@ -943,7 +943,8 @@ namespace TheFlightSims.HyperVDPD.WMIProperties
          *      - The function must be invoked from the PCI, that means the when the device is still with
          *      
          *  References: 
-         *      - 
+         *      - https://learn.microsoft.com/en-us/windows/win32/hyperv_v2/msvm-virtualsystemmanagementservice
+         *      - https://learn.microsoft.com/en-us/windows/win32/hyperv_v2/msvm-pciexpresssettingdata
          *  
          *  Limitations:
          *      - Windows 10 1703/Windows Server 2016 or later is required for this method to work.
