@@ -926,14 +926,46 @@ namespace TheFlightSims.HyperVDPD.WMIProperties
             }
         }
 
+        /*
+         * Dismount PCIP device into the VM (Must be invoked when it is still in PCIP)
+         * 
+         * How does it work?
+         *   1. It connects to the Hyper-V namespace (root\virtualization\v2)
+         *   2. From the provided variable deviceId, try to get the PCIP device that match deviceID 
+         *      in Msvm_PciExpressSettingData
+         *   3. Call the service Msvm_PciExpressSettingData to dismount the device from the VM
+         *   4. From the out parameter, check the return value and compare it into Success or 
+         *      Failure state
+         *   
+         *  Note:
+         *      - For each value of the get ManagementObject, it is required to check for null value
+         *      - No matter how the service operate with the parameter, any WMI object must be disposed
+         *      - The function must be invoked from the PCI, that means the when the device is still with
+         *      
+         *  References: 
+         *      - 
+         *  
+         *  Limitations:
+         *      - Windows 10 1703/Windows Server 2016 or later is required for this method to work.
+         *      - WMI Filtering may affect the operation.
+         */
         public void DismountFromVM(string deviceId)
         {
+            // 1. Connect to Hyper-V WMI
             Connect("root\\virtualization\\v2");
-
-            ManagementObject[] deviceObj = new ManagementObject[1];
-            ManagementObject srv = new ManagementClass(scope, new ManagementPath("Msvm_VirtualSystemManagementService"), null).GetInstances().Cast<ManagementObject>().FirstOrDefault() ?? throw new ManagementException("DismountFromVM: Assignment service is either not running or crashed");
             uint outParams = 32768;
 
+            ManagementObject[] deviceObj = new ManagementObject[1];
+
+            // Get the service
+            ManagementObject srv = new ManagementClass(scope, new ManagementPath("Msvm_VirtualSystemManagementService"), null).GetInstances().Cast<ManagementObject>().FirstOrDefault();
+
+            if (srv == null)
+            {
+                throw new ManagementException("DismountFromVM: Assignment service is either not running or crashed");
+            }
+    
+            // 2. Get the device instance from deviceId
             foreach (ManagementObject obj in GetObjects("Msvm_PciExpressSettingData", "*").Cast<ManagementObject>())
             {
                 string objInstanceId = obj["InstanceID"]?.ToString();
@@ -956,6 +988,7 @@ namespace TheFlightSims.HyperVDPD.WMIProperties
                 throw new ManagementException("DismountFromVM: Error while finding the device ID");
             }
 
+            // 3. Call the service
             try
             {
                 outParams = (uint)srv.InvokeMethod("RemoveResourceSettings", new object[]
@@ -968,6 +1001,7 @@ namespace TheFlightSims.HyperVDPD.WMIProperties
                 srv?.Dispose();
             }
 
+            // 4. Check for the out param.Returns 0 in case success, other numbers as failure, and failback as unknown
             switch (outParams)
             {
                 case 0:
