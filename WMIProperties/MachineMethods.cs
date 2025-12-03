@@ -175,43 +175,46 @@ namespace TheFlightSims.HyperVDPD.WMIProperties
             ManagementObject vm = null;
 
             // 2. Get the target ManagementObject from the vmName
-            foreach (ManagementObject obj in GetObjects("Msvm_VirtualSystemSettingData", "*").Cast<ManagementObject>())
+            using (ManagementObjectCollection vmSettingDataList = GetObjects("Msvm_VirtualSystemSettingData", "*"))
             {
-                /*
-                 * In this loop, it first check if the target VM setting is the actual setting, and not the definition
-                 * After that, if the ElementName of the ManagementObject matches with the vmName param, set the target
-                 *  object to that ManagementObject
-                 *  
-                 *  Note: Always dispose on null values
-                 */
-
-                string objCaption = obj["Caption"]?.ToString();
-                string objInstanceId = obj["InstanceID"]?.ToString();
-
-                if (objCaption == null || objInstanceId == null)
+                foreach (ManagementObject obj in vmSettingDataList.Cast<ManagementObject>())
                 {
-                    obj.Dispose();
-                    continue;
-                }
+                    /*
+                     * In this loop, it first check if the target VM setting is the actual setting, and not the definition
+                     * After that, if the ElementName of the ManagementObject matches with the vmName param, set the target
+                     *  object to that ManagementObject
+                     *  
+                     *  Note: Always dispose on null values
+                     */
 
-                if (objCaption.Equals("Virtual Machine Settings") && !objInstanceId.Contains("Microsoft:Definition"))
-                {
-                    string hostName = obj["ElementName"]?.ToString();
+                    string objCaption = obj["Caption"]?.ToString();
+                    string objInstanceId = obj["InstanceID"]?.ToString();
 
-                    if (hostName == null)
+                    if (objCaption == null || objInstanceId == null)
                     {
                         obj.Dispose();
                         continue;
                     }
 
-                    if (hostName.Equals(vmName))
+                    if (objCaption.Equals("Virtual Machine Settings") && !objInstanceId.Contains("Microsoft:Definition"))
                     {
-                        vm = obj;
-                        break;
-                    }
-                }
+                        string hostName = obj["ElementName"]?.ToString();
 
-                obj.Dispose();
+                        if (hostName == null)
+                        {
+                            obj.Dispose();
+                            continue;
+                        }
+
+                        if (hostName.Equals(vmName))
+                        {
+                            vm = obj;
+                            break;
+                        }
+                    }
+
+                    obj.Dispose();
+                }
             }
 
             if (vm == null)
@@ -311,43 +314,46 @@ namespace TheFlightSims.HyperVDPD.WMIProperties
             ManagementObject vm = null;
 
             // 2. Get the target ManagementObject from the vmName
-            foreach (ManagementObject obj in GetObjects("Msvm_VirtualSystemSettingData", "*").Cast<ManagementObject>())
+            using (ManagementObjectCollection vmSettingDataList = GetObjects("Msvm_VirtualSystemSettingData", "*"))
             {
-                /*
-                 * In this loop, it first check if the target VM setting is the actual setting, and not the definition
-                 * After that, if the ElementName of the ManagementObject matches with the vmName param, set the target
-                 *  object to that ManagementObject
-                 *  
-                 *  Note: Always dispose on null values
-                 */
-                string objCaption = obj["Caption"]?.ToString();
-                string objInstanceId = obj["InstanceID"]?.ToString();
-
-                if (objCaption == null || objInstanceId == null)
+                foreach (ManagementObject obj in vmSettingDataList.Cast<ManagementObject>())
                 {
-                    obj.Dispose();
-                    continue;
-                }
+                    /*
+                     * In this loop, it first check if the target VM setting is the actual setting, and not the definition
+                     * After that, if the ElementName of the ManagementObject matches with the vmName param, set the target
+                     *  object to that ManagementObject
+                     *  
+                     *  Note: Always dispose on null values
+                     */
+                    string objCaption = obj["Caption"]?.ToString();
+                    string objInstanceId = obj["InstanceID"]?.ToString();
 
-                if (objCaption.Equals("Virtual Machine Settings") && !objInstanceId.Contains("Microsoft:Definition"))
-                {
-                    string hostName = obj["ElementName"]?.ToString();
-
-                    if (hostName == null)
+                    if (objCaption == null || objInstanceId == null)
                     {
                         obj.Dispose();
                         continue;
                     }
 
-                    if (hostName.Equals(vmName))
+                    if (objCaption.Equals("Virtual Machine Settings") && !objInstanceId.Contains("Microsoft:Definition"))
                     {
-                        vm = obj;
+                        string hostName = obj["ElementName"]?.ToString();
+
+                        if (hostName == null)
+                        {
+                            obj.Dispose();
+                            continue;
+                        }
+
+                        if (hostName.Equals(vmName))
+                        {
+                            vm = obj;
+                        }
                     }
+
+                    obj.Dispose();
                 }
-
-                obj.Dispose();
             }
-
+            
             if (vm == null)
             {
                 throw new ManagementException("ChangeMemAllocate: Unable to get the virtual machine setting");
@@ -433,38 +439,41 @@ namespace TheFlightSims.HyperVDPD.WMIProperties
             Connect("root\\cimv2");
 
             // 2. From the device list, try to find the device that matches the deviceID
-            foreach (ManagementObject deviceSearcher in GetObjects("Win32_PnPEntity", "DeviceId").Cast<ManagementObject>())
+            using (ManagementObjectCollection pnpEntityList = GetObjects("Win32_PnPEntity", "DeviceId"))
             {
-                // Get the device ID
-                string devSearcherId = deviceSearcher["DeviceId"]?.ToString();
-
-                // Dispose the device when find null
-                if (devSearcherId == null)
+                foreach (ManagementObject deviceSearcher in pnpEntityList.Cast<ManagementObject>())
                 {
-                    deviceSearcher.Dispose();
-                    continue;
-                }
+                    // Get the device ID
+                    string devSearcherId = deviceSearcher["DeviceId"]?.ToString();
 
-                // Check if the target device is 
-                if (devSearcherId.Equals(deviceID))
-                {
-                    try
-                    {
-                        _ = (uint)deviceSearcher.InvokeMethod(
-                            (isDisable) ? "Disable" : "Enable",
-                            new object[] { }
-                        );
-                    }
-                    catch (IndexOutOfRangeException) { }
-                    finally
+                    // Dispose the device when find null
+                    if (devSearcherId == null)
                     {
                         deviceSearcher.Dispose();
+                        continue;
                     }
 
-                    break;
-                }
+                    // Check if the target device is 
+                    if (devSearcherId.Equals(deviceID))
+                    {
+                        try
+                        {
+                            _ = (uint)deviceSearcher.InvokeMethod(
+                                (isDisable) ? "Disable" : "Enable",
+                                new object[] { }
+                            );
+                        }
+                        catch (IndexOutOfRangeException) { }
+                        finally
+                        {
+                            deviceSearcher.Dispose();
+                        }
 
-                deviceSearcher.Dispose();
+                        break;
+                    }
+
+                    deviceSearcher.Dispose();
+                }
             }
         }
 
@@ -606,31 +615,34 @@ namespace TheFlightSims.HyperVDPD.WMIProperties
             string deviceLocation = string.Empty;
 
             // 2. Get the device location path
-            foreach (ManagementObject obj in GetObjects("Msvm_PciExpress", "*").Cast<ManagementObject>())
+            using (ManagementObjectCollection pciExpressList = GetObjects("Msvm_PciExpress", "*"))
             {
-                string devInstancePath = obj["DeviceInstancePath"]?.ToString();
-
-                if (devInstancePath == null)
+                foreach (ManagementObject obj in pciExpressList.Cast<ManagementObject>())
                 {
-                    obj.Dispose();
-                    continue;
-                }
+                    string devInstancePath = obj["DeviceInstancePath"]?.ToString();
 
-                if (devInstancePath.Equals(devicePath))
-                {
-                    string devLoc = obj["LocationPath"]?.ToString();
-
-                    if (devLoc != null)
+                    if (devInstancePath == null)
                     {
-                        deviceLocation = devLoc;
                         obj.Dispose();
-                        break;
+                        continue;
                     }
+
+                    if (devInstancePath.Equals(devicePath))
+                    {
+                        string devLoc = obj["LocationPath"]?.ToString();
+
+                        if (devLoc != null)
+                        {
+                            deviceLocation = devLoc;
+                            obj.Dispose();
+                            break;
+                        }
+                    }
+
+                    obj.Dispose();
                 }
-
-                obj.Dispose();
             }
-
+            
             // In case not found, throw exception
             if (deviceLocation == string.Empty)
             {
@@ -762,47 +774,50 @@ namespace TheFlightSims.HyperVDPD.WMIProperties
 
             // 3. From the PCIP device list, find if there is any device matches the PCI that has mounted
             //  From that, set the host resources (hostRes)
-            foreach (ManagementObject device in GetObjects("Msvm_PciExpress", "*").Cast<ManagementObject>())
+            using (ManagementObjectCollection pciExpressList = GetObjects("Msvm_PciExpress", "*"))
             {
-                // Get the device instance path (starts with "PCIP\")
-                string devInstancePath = device["DeviceInstancePath"]?.ToString();
-
-                if (devInstancePath == null)
+                foreach (ManagementObject device in pciExpressList.Cast<ManagementObject>())
                 {
-                    device.Dispose();
-                    continue;
-                }
+                    // Get the device instance path (starts with "PCIP\")
+                    string devInstancePath = device["DeviceInstancePath"]?.ToString();
 
-                // If matches, make sure the 
-                if (devInstancePath.Contains(deviceId.Replace("PCI\\", "PCIP\\")))
-                {
-                    // Get the host name and device PnP
-                    string hostName = device["SystemName"]?.ToString();
-                    string deviceIdPnP = device["DeviceId"]?.ToString();
-
-                    // Set the hostRes
-                    /*
-                     * Note it has a structure of this (in a single line, just seperate into lines so can see it easily):
-                     *  \\{hostName}\root\virtualization\v2:
-                     *  Msvm_PciExpress.CreationClassName="Msvm_PciExpress",
-                     *  DeviceID="{deviceIdPnP}",
-                     *  SystemCreationClassName="Msvm_ComputerSystem",
-                     *  SystemName="{hostName}"
-                     *  
-                     *  where "hostName" is the device name, and "deviceIdPnP" is the device ID in GUIDv4
-                     */
-                    if (hostName != null || deviceIdPnP != null)
+                    if (devInstancePath == null)
                     {
-                        deviceIdPnP = deviceIdPnP.Replace("\\", "\\\\");
-                        hostRes = $"\\\\{hostName}\\root\\virtualization\\v2:Msvm_PciExpress.CreationClassName=\"Msvm_PciExpress\",DeviceID=\"{deviceIdPnP}\",SystemCreationClassName=\"Msvm_ComputerSystem\",SystemName=\"{hostName}\"";
                         device.Dispose();
-                        break;
+                        continue;
                     }
 
-                    device.Dispose();
+                    // If matches, make sure the 
+                    if (devInstancePath.Contains(deviceId.Replace("PCI\\", "PCIP\\")))
+                    {
+                        // Get the host name and device PnP
+                        string hostName = device["SystemName"]?.ToString();
+                        string deviceIdPnP = device["DeviceId"]?.ToString();
+
+                        // Set the hostRes
+                        /*
+                         * Note it has a structure of this (in a single line, just seperate into lines so can see it easily):
+                         *  \\{hostName}\root\virtualization\v2:
+                         *  Msvm_PciExpress.CreationClassName="Msvm_PciExpress",
+                         *  DeviceID="{deviceIdPnP}",
+                         *  SystemCreationClassName="Msvm_ComputerSystem",
+                         *  SystemName="{hostName}"
+                         *  
+                         *  where "hostName" is the device name, and "deviceIdPnP" is the device ID in GUIDv4
+                         */
+                        if (hostName != null || deviceIdPnP != null)
+                        {
+                            deviceIdPnP = deviceIdPnP.Replace("\\", "\\\\");
+                            hostRes = $"\\\\{hostName}\\root\\virtualization\\v2:Msvm_PciExpress.CreationClassName=\"Msvm_PciExpress\",DeviceID=\"{deviceIdPnP}\",SystemCreationClassName=\"Msvm_ComputerSystem\",SystemName=\"{hostName}\"";
+                            device.Dispose();
+                            break;
+                        }
+
+                        device.Dispose();
+                    }
                 }
             }
-
+            
             // If the hostRes is empty, throw new exception
             if (hostRes == string.Empty)
             {
@@ -810,41 +825,44 @@ namespace TheFlightSims.HyperVDPD.WMIProperties
             }
 
             // 4. Get the VM setting to mount new device into the VM
-            foreach (ManagementObject vmSetting in GetObjects("Msvm_VirtualSystemSettingData", "*").Cast<ManagementObject>())
+            using (ManagementObjectCollection vmSettingDataList = GetObjects("Msvm_VirtualSystemSettingData", "*"))
             {
-                // Get the Caption and Instance ID
-                string vmCaption = vmSetting["Caption"]?.ToString();
-                string vmInstanceID = vmSetting["InstanceID"]?.ToString();
-
-                // Check if the vmCaption is null
-                if (vmCaption == null || vmInstanceID == null)
+                foreach (ManagementObject vmSetting in vmSettingDataList.Cast<ManagementObject>())
                 {
-                    vmSetting.Dispose();
-                    continue;
-                }
+                    // Get the Caption and Instance ID
+                    string vmCaption = vmSetting["Caption"]?.ToString();
+                    string vmInstanceID = vmSetting["InstanceID"]?.ToString();
 
-                if (vmCaption.Equals("Virtual Machine Settings") && !vmInstanceID.Contains("Microsoft:Definition"))
-                {
-                    // Get the VM name
-                    string hostName = vmSetting["ElementName"]?.ToString();
-
-                    if (hostName == null)
+                    // Check if the vmCaption is null
+                    if (vmCaption == null || vmInstanceID == null)
                     {
                         vmSetting.Dispose();
                         continue;
                     }
 
-                    // If the VM name matches with the name wants to set the target, set the vmCurrentSetting and vmRes to it
-                    if (hostName.Equals(vmName))
+                    if (vmCaption.Equals("Virtual Machine Settings") && !vmInstanceID.Contains("Microsoft:Definition"))
                     {
-                        vmRes = $"{vmSetting["InstanceID"]}\\{Guid.NewGuid().ToString().ToUpper()}";
-                        vmCurrentSetting = vmSetting;
-                        vmSetting.Dispose();
-                        break;
+                        // Get the VM name
+                        string hostName = vmSetting["ElementName"]?.ToString();
+
+                        if (hostName == null)
+                        {
+                            vmSetting.Dispose();
+                            continue;
+                        }
+
+                        // If the VM name matches with the name wants to set the target, set the vmCurrentSetting and vmRes to it
+                        if (hostName.Equals(vmName))
+                        {
+                            vmRes = $"{vmSetting["InstanceID"]}\\{Guid.NewGuid().ToString().ToUpper()}";
+                            vmCurrentSetting = vmSetting;
+                            vmSetting.Dispose();
+                            break;
+                        }
                     }
                 }
             }
-
+            
             if (vmRes == string.Empty)
             {
                 throw new ManagementException("MountIntoVM: Unable to generate InstanceID");
@@ -967,21 +985,24 @@ namespace TheFlightSims.HyperVDPD.WMIProperties
             }
 
             // 2. Get the device instance from deviceId
-            foreach (ManagementObject obj in GetObjects("Msvm_PciExpressSettingData", "*").Cast<ManagementObject>())
+            using (ManagementObjectCollection pciExpressSettingList = GetObjects("Msvm_PciExpressSettingData", "*"))
             {
-                string objInstanceId = obj["InstanceID"]?.ToString();
-
-                if (objInstanceId != null)
+                foreach (ManagementObject obj in pciExpressSettingList.Cast<ManagementObject>())
                 {
-                    if (objInstanceId.Equals(deviceId))
-                    {
-                        deviceObj[0] = obj;
-                        obj.Dispose();
-                        break;
-                    }
-                }
+                    string objInstanceId = obj["InstanceID"]?.ToString();
 
-                obj.Dispose();
+                    if (objInstanceId != null)
+                    {
+                        if (objInstanceId.Equals(deviceId))
+                        {
+                            deviceObj[0] = obj;
+                            obj.Dispose();
+                            break;
+                        }
+                    }
+
+                    obj.Dispose();
+                }
             }
 
             if (deviceObj[0] == null)

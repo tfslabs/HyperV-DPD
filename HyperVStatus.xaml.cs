@@ -67,21 +67,24 @@ namespace TheFlightSims.HyperVDPD
             try
             {
                 machine.Connect("root\\cimv2");
-                foreach (ManagementObject srv in machine.GetObjects("Win32_Service", "Name, Caption, State").Cast<ManagementObject>())
+                using (ManagementObjectCollection srvList = machine.GetObjects("Win32_Service", "Name, Caption, State"))
                 {
-                    if (srv["Name"] == null || !serviceNames.Contains(srv["Name"].ToString()))
+                    foreach (ManagementObject srv in srvList.Cast<ManagementObject>())
                     {
+                        if (srv["Name"] == null || !serviceNames.Contains(srv["Name"].ToString()))
+                        {
+                            srv.Dispose();
+                            continue;
+                        }
+
+                        _ = ListHVSrv.Items.Add(new
+                        {
+                            ServiceName = srv["Caption"]?.ToString() ?? "Unknown",
+                            ServiceStatus = srv["State"]?.ToString() ?? "Unknown"
+                        });
+
                         srv.Dispose();
-                        continue;
                     }
-
-                    _ = ListHVSrv.Items.Add(new
-                    {
-                        ServiceName = srv["Caption"]?.ToString() ?? "Unknown",
-                        ServiceStatus = srv["State"]?.ToString() ?? "Unknown"
-                    });
-
-                    srv.Dispose();
                 }
             }
             catch (Exception ex)

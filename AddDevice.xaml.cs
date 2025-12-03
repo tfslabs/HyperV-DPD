@@ -115,29 +115,32 @@ namespace TheFlightSims.HyperVDPD
             try
             {
                 // Loop for devices in Win32_PnPEntity
-                foreach (ManagementObject device in machine.GetObjects("Win32_PnPEntity", "Status, PNPClass, Name, DeviceID").Cast<ManagementObject>())
+                using (ManagementObjectCollection pnpEntityList = machine.GetObjects("Win32_PnPEntity", "Status, PNPClass, Name, DeviceID"))
                 {
-                    string deviceStatus = device["Status"]?.ToString() ?? "Unknown";
-                    string deviceType = device["PNPClass"]?.ToString() ?? "Unknown";
-                    string deviceName = device["Name"]?.ToString() ?? "Unknown";
-                    string deviceId = device["DeviceID"]?.ToString() ?? "Unknown";
-
-                    // If the device is not PCI, skip to the next device
-                    if (!deviceId.StartsWith("PCI"))
+                    foreach (ManagementObject device in pnpEntityList.Cast<ManagementObject>())
                     {
+                        string deviceStatus = device["Status"]?.ToString() ?? "Unknown";
+                        string deviceType = device["PNPClass"]?.ToString() ?? "Unknown";
+                        string deviceName = device["Name"]?.ToString() ?? "Unknown";
+                        string deviceId = device["DeviceID"]?.ToString() ?? "Unknown";
+
+                        // If the device is not PCI, skip to the next device
+                        if (!deviceId.StartsWith("PCI"))
+                        {
+                            device.Dispose();
+                            continue;
+                        }
+
+                        _ = DeviceList.Items.Add(new
+                        {
+                            DeviceStatus = deviceStatus,
+                            DeviceType = deviceType,
+                            DeviceName = deviceName,
+                            DeviceId = deviceId
+                        });
+
                         device.Dispose();
-                        continue;
                     }
-
-                    _ = DeviceList.Items.Add(new
-                    {
-                        DeviceStatus = deviceStatus,
-                        DeviceType = deviceType,
-                        DeviceName = deviceName,
-                        DeviceId = deviceId
-                    });
-
-                    device.Dispose();
                 }
             }
             catch (Exception ex)
