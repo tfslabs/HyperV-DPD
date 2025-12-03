@@ -30,7 +30,7 @@
                     <MenuItem Click="RemDevice_Click" Header="_Remove Device" />
                     <MenuItem Click="CopyDevAddress_Click" Header="Copy Device Address" />
                     <Separator />
-                    <MenuItem Click="ChangeCacheTypes_Click" Header="_Change virtual machine Cache Types"/>
+                    <MenuItem Click="ChangeCacheTypes_Click" Header="_Change VM Cache Types"/>
                     <MenuItem Click="ChangeMemLocation_Click" Header="_Change Memory Space" />
                 </MenuItem>
                 <MenuItem x:Name="_MenuItemHVService" Header="_Hyper-V Global Settings" >
@@ -102,7 +102,7 @@
                     <ColumnDefinition Width="Auto"/>
                     <ColumnDefinition Width="Auto"/>
                 </Grid.ColumnDefinitions>
-                <Button Grid.Column="0" Click="ChangeCacheTypes_Click" Content="Change virtual machine Cache Type" HorizontalAlignment="Left" VerticalAlignment="Center" Margin="0,0,5,0" Padding="3,0,3,0" />
+                <Button Grid.Column="0" Click="ChangeCacheTypes_Click" Content="Change VM Cache Type" HorizontalAlignment="Left" VerticalAlignment="Center" Margin="0,0,5,0" Padding="3,0,3,0" />
                 <Button Grid.Column="1" Click="ChangeMemLocation_Click" Content="Change Memory Space" HorizontalAlignment="Left" VerticalAlignment="Center" Margin="5,0,5,0" Padding="3,0,3,0" />
             </Grid>
             <Grid Grid.Column="1">
