@@ -169,7 +169,7 @@ namespace TheFlightSims.HyperVDPD.WMIProperties
         {
             // 1. Connect to the namespace
             Connect("root\\virtualization\\v2");
-            
+
             // Set the property
             uint outParams = 32768;
             ManagementObject vm = null;
@@ -223,11 +223,11 @@ namespace TheFlightSims.HyperVDPD.WMIProperties
             try
             {
                 vm["GuestControlledCacheTypes"] = isEnableGuestControlCache;
-                
+
                 // Get the service object
                 ManagementObject srv = new ManagementClass(
-                        scope, 
-                        new ManagementPath("Msvm_VirtualSystemManagementService"), 
+                        scope,
+                        new ManagementPath("Msvm_VirtualSystemManagementService"),
                         null
                     ).GetInstances().Cast<ManagementObject>().FirstOrDefault();
 
@@ -361,12 +361,12 @@ namespace TheFlightSims.HyperVDPD.WMIProperties
 
                 // Get the management service
                 ManagementObject srv = new ManagementClass(
-                    scope, 
+                    scope,
                     new ManagementPath("Msvm_VirtualSystemManagementService"), null
                 ).GetInstances().Cast<ManagementObject>().FirstOrDefault();
-                
+
                 // If null, the service is crashed
-                if (srv ==  null)
+                if (srv == null)
                 {
                     throw new ManagementException("ChangeMemAllocate: Assignment service is either not running or crashed");
                 }
@@ -431,7 +431,7 @@ namespace TheFlightSims.HyperVDPD.WMIProperties
         {
             // 1. Connect to the root name space
             Connect("root\\cimv2");
-            
+
             // 2. From the device list, try to find the device that matches the deviceID
             foreach (ManagementObject deviceSearcher in GetObjects("Win32_PnPEntity", "DeviceId").Cast<ManagementObject>())
             {
@@ -451,7 +451,7 @@ namespace TheFlightSims.HyperVDPD.WMIProperties
                     try
                     {
                         _ = (uint)deviceSearcher.InvokeMethod(
-                            (isDisable) ? "Disable" : "Enable", 
+                            (isDisable) ? "Disable" : "Enable",
                             new object[] { }
                         );
                     }
@@ -499,11 +499,11 @@ namespace TheFlightSims.HyperVDPD.WMIProperties
 
             // Create new object as the input param from the Msvm_AssignableDeviceDismountSettingData for the WMI method
             ManagementObject setting = new ManagementClass(
-                scope, 
-                new ManagementPath("Msvm_AssignableDeviceDismountSettingData"), 
+                scope,
+                new ManagementPath("Msvm_AssignableDeviceDismountSettingData"),
                 null
              )?.CreateInstance();
-            
+
             if (setting == null)
             {
                 throw new ManagementException("MountPnPDeviceToPcip: Unable to get the setting class");
@@ -527,7 +527,7 @@ namespace TheFlightSims.HyperVDPD.WMIProperties
 
                 // Call for service method
                 outObj = (uint)srv.InvokeMethod(
-                    "DismountAssignableDevice", 
+                    "DismountAssignableDevice",
                     new object[] {
                     setting.GetText(TextFormat.WmiDtd20)
                 });
@@ -639,8 +639,8 @@ namespace TheFlightSims.HyperVDPD.WMIProperties
 
             // 3. Call the service 
             ManagementObject srv = new ManagementClass(
-                scope, 
-                new ManagementPath("Msvm_AssignableDeviceService"), 
+                scope,
+                new ManagementPath("Msvm_AssignableDeviceService"),
                 null
             ).GetInstances().Cast<ManagementObject>().FirstOrDefault();
 
@@ -650,7 +650,7 @@ namespace TheFlightSims.HyperVDPD.WMIProperties
                     "DismountPnPDeviceFromPcip: Assignment service is either not running or crashed"
                 );
             }
-            
+
             try
             {
                 outObj = (uint)srv.InvokeMethod("MountAssignableDevice", new object[]
@@ -733,16 +733,16 @@ namespace TheFlightSims.HyperVDPD.WMIProperties
         {
             // 1. Connect to Hyper-V WMI
             Connect("root\\virtualization\\v2");
-            
+
             uint outParams = 32768;
             string hostRes = string.Empty, vmRes = string.Empty;
-            
+
             ManagementObject vmCurrentSetting = null;
 
             // 2. Create new instance for the vm setting
             ManagementObject setting = new ManagementClass(
-                scope, 
-                new ManagementPath("Msvm_PciExpressSettingData"), 
+                scope,
+                new ManagementPath("Msvm_PciExpressSettingData"),
                 null
             ).CreateInstance();
 
@@ -849,7 +849,7 @@ namespace TheFlightSims.HyperVDPD.WMIProperties
             {
                 throw new ManagementException("MountIntoVM: Unable to generate InstanceID");
             }
-            
+
             if (vmCurrentSetting == null)
             {
                 throw new ManagementException("MountIntoVM: Unable to get setting for VM");
@@ -888,13 +888,13 @@ namespace TheFlightSims.HyperVDPD.WMIProperties
                 // Msvm_PciExpressSettingData
                 setting["VirtualFunctions"] = new ushort[] { 0 };
                 setting["VirtualSystemIdentifiers"] = new string[] { "{" + Guid.NewGuid() + "}" };
-                
+
                 // Call for the service
                 outParams = (uint)srv.InvokeMethod("AddResourceSettings", new object[]
                 {
                     vmCurrentSetting,
-                    new string[] { 
-                        setting.GetText(TextFormat.WmiDtd20) 
+                    new string[] {
+                        setting.GetText(TextFormat.WmiDtd20)
                     }
                 });
             }
@@ -965,7 +965,7 @@ namespace TheFlightSims.HyperVDPD.WMIProperties
             {
                 throw new ManagementException("DismountFromVM: Assignment service is either not running or crashed");
             }
-    
+
             // 2. Get the device instance from deviceId
             foreach (ManagementObject obj in GetObjects("Msvm_PciExpressSettingData", "*").Cast<ManagementObject>())
             {

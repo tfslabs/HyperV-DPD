@@ -22,8 +22,8 @@ namespace TheFlightSims.HyperVDPD
         ///     This region contains global properties and constructors 
         ///     for the MachineMethods class.
         ////////////////////////////////////////////////////////////////
-        
-        
+
+
         protected MachineMethods machine;
         public static readonly HashSet<string> serviceNames = new HashSet<string>()
         {

@@ -27,7 +27,7 @@ namespace TheFlightSims.HyperVDPD.DefaultUI
         ///     This region contains global properties and constructors 
         ///     for the MachineMethods class.
         ////////////////////////////////////////////////////////////////
-        
+
         /*
          * Global properties
          *  allowedExceptionTypes: A list of exception types that are allowed to be ignored
@@ -92,20 +92,20 @@ namespace TheFlightSims.HyperVDPD.DefaultUI
 
             // Check if the exception type is in the allowed list
             bool isAllowed = this.allowedExceptionTypes.Any(t => t.IsInstanceOfType(e));
-            
+
             if (!isAllowed)
             {
                 ExceptionMessage_TextBlock.Text = "An unexpected error has occurred.\n" +
                     "You should close the application and check for the system";
                 Button_Ignore.Visibility = Visibility.Collapsed;
             }
-            
+
 #if !DEBUG
             DetailedExceptionDetail_TextBox.Text = e.Message;
 #else
             DetailedExceptionDetail_TextBox.Text = e.ToString();
 #endif
-            
+
             ShowDialog();
         }
     }

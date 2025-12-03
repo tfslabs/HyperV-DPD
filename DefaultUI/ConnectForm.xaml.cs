@@ -83,7 +83,7 @@ namespace TheFlightSims.HyperVDPD.DefaultUI
         {
             Close();
         }
-        
+
         ////////////////////////////////////////////////////////////////
         /// Non-User Action Methods Region
         /// 
@@ -114,7 +114,7 @@ namespace TheFlightSims.HyperVDPD.DefaultUI
                     password.AppendChar(c);
                 }
             }
-            
+
             return (computerName, userName, password);
         }
     }

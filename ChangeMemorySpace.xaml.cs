@@ -16,7 +16,7 @@ namespace TheFlightSims.HyperVDPD
         ///     This region contains global properties and constructors 
         ///     for the MachineMethods class.
         ////////////////////////////////////////////////////////////////
-        
+
         /*
          * Global properties
          *  memRange as tuple of low and high memory
@@ -89,7 +89,7 @@ namespace TheFlightSims.HyperVDPD
         /// Think about this is the back-end section.
         /// It should not be in a seperated class, because it directly interacts with the UI elements.
         ////////////////////////////////////////////////////////////////
-        
+
         /*
          * Return Value
          */
