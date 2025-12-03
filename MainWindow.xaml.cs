@@ -36,10 +36,6 @@ namespace TheFlightSims.HyperVDPD
         private MachineMethods machine;
         private readonly Dictionary<string, (string vmName, string vmStatus, List<(string instanceId, string devInstancePath)> devices)> vmObjects;
 
-        // Will do migrate later
-        private readonly Dictionary<string, (string vmName, string vmStatus)> vmStatus;
-        private readonly Dictionary<string, List<(string instanceId, string devInstancePath)>> vmDevices;
-
         // Default values of VM status mapping
         public static readonly Dictionary<ushort, string> vmStatusMap = new Dictionary<ushort, string>
         {
@@ -67,10 +63,6 @@ namespace TheFlightSims.HyperVDPD
             // Initialize global properties
             machine = new MachineMethods();
             vmObjects = new Dictionary<string, (string vmName, string vmStatus, List<(string instanceId, string devInstancePath)> devices)>();
-
-            // Will do migrate later
-            vmStatus = new Dictionary<string, (string vmName, string vmStatus)>();
-            vmDevices = new Dictionary<string, List<(string instanceId, string devInstancePath)>>();
 
             // Set up the sync loading event handler. See the method below for further info.
             Loaded += MainWindow_Loaded;
@@ -514,7 +506,7 @@ namespace TheFlightSims.HyperVDPD
                         MessageBoxButton.YesNoCancel,
                         MessageBoxImage.Question
                     );
-                    
+
                     // If yes, proceed to enable memory cache
                     if (isEnableMemCache == MessageBoxResult.Yes)
                     {
@@ -636,7 +628,7 @@ namespace TheFlightSims.HyperVDPD
         {
             // Flags to check system compatibility
             bool isHyperVDisabled = true, isOSTooOld = true, isOSNotServer = true;
-            
+
             StatusBarChangeBehaviour(true, "Connecting");
 
             // Try to connect to the Hyper-V host and check system compatibility
@@ -647,7 +639,8 @@ namespace TheFlightSims.HyperVDPD
                 {
                     // Connect to the CIMV2 namespace to check OS information
                     machine.Connect("root\\cimv2");
-                    foreach (ManagementObject osInfo in machine.GetObjects("Win32_OperatingSystem", "BuildNumber, ProductType").Cast<ManagementObject>())
+                    
+                    using (ManagementObject osInfo = machine.GetObjects("Win32_OperatingSystem", "BuildNumber, ProductType").Cast<ManagementObject>().FirstOrDefault())
                     {
                         // Check OS build number for DDA support
                         string osInfoBuildNumber = osInfo["BuildNumber"]?.ToString() ?? "";
@@ -673,18 +666,19 @@ namespace TheFlightSims.HyperVDPD
 
                         // Dispose of the ManagementObject to free resources
                         osInfo.Dispose();
-
-                        break;
                     }
 
                     // Connect to the virtualization namespace to check Hyper-V presence
                     machine.Connect("root\\virtualization\\v2");
                     ManagementObjectCollection hyerpvObjects = machine.GetObjects("Msvm_ComputerSystem", "*");
+                    
                     if (hyerpvObjects != null)
                     {
                         // If we can retrieve Hyper-V objects, Hyper-V is enabled
                         isHyperVDisabled = false;
                     }
+
+                    hyerpvObjects.Dispose();
                 });
             }
             catch (Exception ex)
@@ -757,70 +751,77 @@ namespace TheFlightSims.HyperVDPD
 
                     // Connect to the Hyper-V WMI namespace
                     machine.Connect("root\\virtualization\\v2");
-                    foreach (ManagementObject vmInfo in machine.GetObjects("Msvm_ComputerSystem", "Caption, ElementName, EnabledState, Name").Cast<ManagementObject>())
+
+                    using (ManagementObjectCollection vmList = machine.GetObjects("Msvm_ComputerSystem", "Caption, ElementName, EnabledState, Name"))
                     {
-                        // Retrieve VM properties
-                        string vmInfoCaption = vmInfo["Caption"]?.ToString();
-                        string vmInfoName = vmInfo["Name"]?.ToString();
-                        string vmInfoElementName = vmInfo["ElementName"]?.ToString();
-                        ushort vmInfoState = (ushort)vmInfo["EnabledState"];
-
-                        // Validate retrieved properties
-                        if (vmInfoCaption == null || vmInfoName == null || vmInfoElementName == null || vmInfoState > 10)
+                        foreach (ManagementObject vmInfo in vmList.Cast<ManagementObject>())
                         {
+                            // Retrieve VM properties
+                            string vmInfoCaption = vmInfo["Caption"]?.ToString();
+                            string vmInfoName = vmInfo["Name"]?.ToString();
+                            string vmInfoElementName = vmInfo["ElementName"]?.ToString();
+                            ushort vmInfoState = (ushort)vmInfo["EnabledState"];
+
+                            // Validate retrieved properties
+                            if (vmInfoCaption == null || vmInfoName == null || vmInfoElementName == null || vmInfoState > 10)
+                            {
+                                vmInfo.Dispose();
+                                continue;
+                            }
+
+                            // Map VM state to human-readable status
+                            if (vmInfoCaption.Equals("Virtual Machine"))
+                            {
+                                vmObjects[vmInfoName] = (vmInfoElementName, vmStatusMap[vmInfoState], new List<(string instanceId, string devInstancePath)>());
+                            }
+
+                            // Dispose of the ManagementObject to free resources
                             vmInfo.Dispose();
-                            continue;
                         }
-
-                        // Map VM state to human-readable status
-                        if (vmInfoCaption.Equals("Virtual Machine"))
-                        {
-                            vmObjects[vmInfoName] = (vmInfoElementName, vmStatusMap[vmInfoState], new List<(string instanceId, string devInstancePath)>());
-                        }
-
-                        // Dispose of the ManagementObject to free resources
-                        vmInfo.Dispose();
                     }
 
                     // Retrieve PCI Express Setting Data to find assigned devices
-                    foreach (ManagementObject deviceid in machine.GetObjects("Msvm_PciExpressSettingData", "Caption, HostResource, InstanceID").Cast<ManagementObject>())
+                    using (ManagementObjectCollection pciExpressSettingDataObj = machine.GetObjects("Msvm_PciExpressSettingData", "Caption, HostResource, InstanceID"))
                     {
-                        // Retrieve the Caption property
-                        string pciSettingCaption = deviceid["Caption"]?.ToString();
-
-                        if (pciSettingCaption == null)
+                        foreach (ManagementObject deviceid in pciExpressSettingDataObj.Cast<ManagementObject>())
                         {
-                            deviceid.Dispose();
-                            continue;
-                        }
+                            // Retrieve the Caption property
+                            string pciSettingCaption = deviceid["Caption"]?.ToString();
 
-                        //  If the device is a PCI Express Port, process it
-                        if (pciSettingCaption.Equals("PCI Express Port"))
-                        {
-                            string instanceId = deviceid["InstanceID"]?.ToString();
-
-                            if (instanceId == null)
+                            if (pciSettingCaption == null)
                             {
                                 deviceid.Dispose();
                                 continue;
                             }
 
-                            string[] payload = instanceId.Replace("Microsoft:", "").Split('\\');
-                            string[] hostResources = (string[])deviceid["HostResource"];
-
-                            if (hostResources == null)
+                            //  If the device is a PCI Express Port, process it
+                            if (pciSettingCaption.Equals("PCI Express Port"))
                             {
+                                string instanceId = deviceid["InstanceID"]?.ToString();
+
+                                if (instanceId == null)
+                                {
+                                    deviceid.Dispose();
+                                    continue;
+                                }
+
+                                string[] payload = instanceId.Replace("Microsoft:", "").Split('\\');
+                                string[] hostResources = (string[])deviceid["HostResource"];
+
+                                if (hostResources == null)
+                                {
+                                    deviceid.Dispose();
+                                    continue;
+                                }
+
+                                if (vmObjects.ContainsKey(payload[0]))
+                                {
+                                    string devPath = Regex.Replace(hostResources[0].Split(',')[1], "DeviceID=\"Microsoft:[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-4[0-9a-fA-F]{3}-[89aAbB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}\\\\\\\\", "").Replace("\"", "").Replace("\\\\", "\\");
+                                    vmObjects[payload[0]].devices.Add((instanceId, devPath));
+                                }
+
                                 deviceid.Dispose();
-                                continue;
                             }
-
-                            if (vmObjects.ContainsKey(payload[0]))
-                            {
-                                string devPath = Regex.Replace(hostResources[0].Split(',')[1], "DeviceID=\"Microsoft:[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-4[0-9a-fA-F]{3}-[89aAbB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}\\\\\\\\", "").Replace("\"", "").Replace("\\\\", "\\");
-                                vmObjects[payload[0]].devices.Add((instanceId, devPath));
-                            }
-
-                            deviceid.Dispose();
                         }
                     }
 
@@ -839,7 +840,7 @@ namespace TheFlightSims.HyperVDPD
                         });
                     }
                 });
-                
+
                 StatusBarChangeBehaviour(false, "Done");
             }
             catch (Exception ex)
